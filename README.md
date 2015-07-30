@@ -9,3 +9,7 @@ logic是业务层代码，当前只做了业务tcp服务logicsocket和自己制�
 当前框架只用于linux，并不支持mac
 
 编译 make linux
+
+
+skynet：https://github.com/cloudwu/skynet
+lua5.3doc：http://cloudwu.github.io/lua53doc/manual.html
