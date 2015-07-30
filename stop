@@ -1,0 +1,38 @@
+#!/bin/sh
+
+
+getDir() {
+	dir=`echo $0 | grep "^/"`
+
+	if test "${dir}"; then
+
+			dirname $0
+
+	else
+
+			dirname `pwd`/$0
+
+	fi
+}
+
+RUNUSER=`whoami`
+nouser=$1
+if [ "$RUNUSER"  != "yangxg" -a "X$nouser" = "X" ];then
+	echo "$0 must be run by yangxg"
+	exit
+fi
+
+RUNDIR=`getDir`
+
+ENGINE=$RUNDIR/server
+
+cd $RUNDIR
+
+engine_pid=`ps auxww|grep $ENGINE|grep -v grep |awk '{printf("%d", $2);}'`
+
+ps auxww|grep $ENGINE|grep -v grep
+
+if [ "X$engine_pid" != "X" ];then
+	echo "kill $engine_pid"
+	kill -9 $engine_pid
+fi

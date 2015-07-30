@@ -1,0 +1,59 @@
+#!/bin/sh
+
+
+getDir() {
+	dir=`echo $0 | grep "^/"`
+
+	if test "${dir}"; then
+
+			dirname $0
+
+	else
+
+			dirname `pwd`/$0
+
+	fi
+}
+
+RUNUSER=`whoami`
+nouser=$1
+if [ "$RUNUSER"  != "yangxg" -a "X$nouser" = "X" ];then
+	echo "$0 must be run by yangxg"
+	exit
+fi
+
+RUNDIR=`getDir`
+
+ENGINE=$RUNDIR/server
+
+cd $RUNDIR
+
+engine_pid=`ps auxww|grep $ENGINE|grep -v grep |awk '{printf("%d", $2);}'`
+
+ps auxww|grep $ENGINE|grep -v grep 
+
+stopflag=0
+
+if [ "X$engine_pid" != "X" ];then
+	echo "$ENGINE is running ,pid=$engine_pid"
+	stopflag=1	
+fi
+
+if [ "X$stopflag" != "X0" ];then
+	echo "please use $RUNDIR/stop to stop game ,then to start"
+	exit
+fi
+
+chmod 755 $ENGINE
+
+cd $RUNDIR
+
+CONFIGDIR=`pwd`
+
+echo "start $ENGINE $CONFIGDIR/config.lua"
+
+$ENGINE $CONFIGDIR/config.lua &
+
+
+
+
