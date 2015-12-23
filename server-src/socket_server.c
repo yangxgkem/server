@@ -159,12 +159,12 @@ reserve_id(struct socket_server *ss) {
 	for (i=0;i<MAX_SOCKET;i++) {
 		int id = __sync_add_and_fetch(&(ss->alloc_id), 1);
 		if (id < 0) {
-			id = __sync_and_and_fetch(&(ss->alloc_id), 0x7fffffff);
+			id = __sync_and_and_fetch(&(ss->alloc_id), 0x7fffffff);//溢出,重新置为0
 		}
 		struct socket *s = &ss->slot[HASH_ID(id)];
 		if (s->type == SOCKET_TYPE_INVALID) {
 			//如果相等就交换成 SOCKET_TYPE_RESERVE 设置为 已分配
-			//这里由于没有加锁 可能多个线程操作 所以使用原子操作再判断一次
+			//这里由于没有加锁 可能多个线程操作 所以使用原子操作来进行赋值
 			if (__sync_bool_compare_and_swap(&s->type, SOCKET_TYPE_INVALID, SOCKET_TYPE_RESERVE)) {
 				s->id = id;
 				s->fd = -1;
@@ -1093,6 +1093,7 @@ do_listen(const char * host, int port, int backlog) {
 }
 
 //外部调用接口 启动服务器socket,此处将执行socket,bind,listen最后返回reserve_id
+//参数backlog 指定同时能处理的最大连接要求, 如果连接数目达此上限则client 端将收到ECONNREFUSED 的错误
 int 
 socket_server_listen(struct socket_server *ss, uintptr_t opaque, const char * addr, int port, int backlog) {
 	int fd = do_listen(addr, port, backlog);
