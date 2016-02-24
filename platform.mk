@@ -1,18 +1,9 @@
 PLAT ?= none
-PLATS = linux freebsd macosx
+PLATS = linux
 
 CC ?= gcc
 
-.PHONY : none $(PLATS) clean all cleanall
-
-#ifneq ($(PLAT), none)
-
-.PHONY : default
-
-default :
-	$(MAKE) $(PLAT)
-
-#endif
+.PHONY : none $(PLATS) clean all
 
 none :
 	@echo "Please do 'make PLATFORM' where PLATFORM is one of these:"
@@ -23,13 +14,8 @@ SHARED := -fPIC --shared
 EXPORT := -Wl,-E
 
 linux : PLAT = linux
-macosx : PLAT = macosx
-freebsd : PLAT = freebsd
+linux : SERVER_LIBS += -ldl
+linux : SERVER_LIBS += -lrt
 
-macosx : SHARED := -fPIC -dynamiclib -Wl,-undefined,dynamic_lookup
-macosx : EXPORT :=
-macosx linux : SERVER_LIBS += -ldl
-linux freebsd : SERVER_LIBS += -lrt
-
-linux macosx freebsd :
+linux :
 	$(MAKE) all PLAT=$@ SERVER_LIBS="$(SERVER_LIBS)" SHARED="$(SHARED)" EXPORT="$(EXPORT)"
