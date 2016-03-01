@@ -63,7 +63,7 @@ struct server_node {
 static struct server_node G_NODE;
 
 //获取当前服务个数
-int 
+int
 server_context_total() {
 	return G_NODE.total;
 }
@@ -88,7 +88,7 @@ server_context_reserve(struct server_context *ctx) {
 }
 
 //获取当前线程执行的handleid
-uint32_t 
+uint32_t
 server_current_handle(void) {
 	if (G_NODE.init) {
 		void * handle = pthread_getspecific(G_NODE.handle_key);
@@ -144,7 +144,7 @@ drop_message(struct server_message *msg, void *ud) {
 }
 
 //创建一个服务
-struct server_context * 
+struct server_context *
 server_context_new(const char * name, const char *param) {
 	struct server_module * mod = server_module_query(name);
 	if (mod == NULL)
@@ -167,11 +167,11 @@ server_context_new(const char * name, const char *param) {
 	ctx->handle = server_handle_register(ctx);
 	struct message_queue * queue = ctx->queue = server_mq_create(ctx->handle);
 	context_inc();
-	
+
 	CHECKCALLING_BEGIN(ctx)
 	int r = server_module_instance_init(mod, inst, ctx, param);//调用模块初始化函数 xxx_init()
 	CHECKCALLING_END(ctx)
-	
+
 	if (r == 0) {
 		struct server_context * ret = server_context_release(ctx);//此步后ctx->ref变为1,1就是server_handle_register此处引用中
 		if (ret) {
@@ -195,7 +195,7 @@ server_context_new(const char * name, const char *param) {
 	return ctx;
 }
 
-static void 
+static void
 delete_context(struct server_context *ctx) {
 	if (ctx->logfile) {
 		fclose(ctx->logfile);
@@ -207,13 +207,13 @@ delete_context(struct server_context *ctx) {
 }
 
 //ctx引用加1
-void 
+void
 server_context_grab(struct server_context *ctx) {
 	__sync_add_and_fetch(&ctx->ref,1);
 }
 
 //ctx引用数减1,引用数为0时关闭ctx
-struct server_context * 
+struct server_context *
 server_context_release(struct server_context *ctx) {
 	if (__sync_sub_and_fetch(&ctx->ref,1) == 0) {
 		delete_context(ctx);
@@ -223,13 +223,13 @@ server_context_release(struct server_context *ctx) {
 }
 
 //获取服务id
-uint32_t 
+uint32_t
 server_context_handle(struct server_context *ctx) {
 	return ctx->handle;
 }
 
 //获取引用数
-int 
+int
 server_context_ref(struct server_context *ctx) {
 	return ctx->ref;
 }
@@ -256,7 +256,7 @@ server_context_push(uint32_t handle, struct server_message *message) {
 }
 
 //处理一条消息
-static void 
+static void
 dispatch_message(struct server_context *ctx, struct server_message *msg) {
 	assert(ctx->init);
 	CHECKCALLING_BEGIN(ctx)
@@ -269,12 +269,12 @@ dispatch_message(struct server_context *ctx, struct server_message *msg) {
 	//执行成功删除数据
 	if (!ctx->cb(ctx, ctx->cb_ud, type, msg->session, msg->source, msg->data, sz)) {
 		server_free(msg->data);
-	} 
+	}
 	CHECKCALLING_END(ctx)
 }
 
 //外部接口,工作线程处理事件
-struct message_queue * 
+struct message_queue *
 server_context_message_dispatch(struct server_monitor *sm, struct message_queue *q) {
 	if (q == NULL) {
 		q = server_globalmq_pop();
@@ -323,7 +323,7 @@ server_context_message_dispatch(struct server_monitor *sm, struct message_queue 
 		// Else (global mq is empty or block, don't push q back, and return q again (for next dispatch)
 		server_globalmq_push(q);
 		q = nq;
-	} 
+	}
 	server_context_release(ctx);
 
 	return q;
@@ -351,7 +351,7 @@ _filter_args(struct server_context * context, int type, int *session, void ** da
 	*sz |= type << HANDLE_REMOTE_SHIFT;//把发送消息协议类型 type 赋值到 data sz 的高8位处
 }
 
-//向目标服务 destination 发送消息 
+//向目标服务 destination 发送消息
 int
 server_send(struct server_context * context, uint32_t source, uint32_t destination , int type, int session, void * data, size_t sz) {
 	if ((sz & HANDLE_MASK) != sz) {
@@ -402,7 +402,8 @@ server_sendname(struct server_context * context, uint32_t source, const char * a
 	uint32_t des = server_handle_findname(addr);
 	if (des != 0) {
 		return server_send(context, source, des, type, session, data, sz);
-	} else {
+	}
+	else if (addr[0] == '#') {
 		_filter_args(context, type, &session, (void **)&data, &sz);
 		struct remote_message * rmsg = server_malloc(sizeof(*rmsg));
 		copy_name(rmsg->destination.name, addr);
@@ -411,6 +412,12 @@ server_sendname(struct server_context * context, uint32_t source, const char * a
 		rmsg->sz = sz;
 		server_harbor_send(rmsg, source, session);
 		return session;
+	}
+	else {
+		if (type & PTYPE_TAG_DONTCOPY) {
+			server_free(data);
+		}
+		return -1;
 	}
 }
 
@@ -427,13 +434,13 @@ server_context_send(struct server_context * ctx, void * msg, size_t sz, uint32_t
 }
 
 //设置回调函数
-void 
+void
 server_callback(struct server_context * context, void *ud, server_cb cb) {
 	context->cb = cb;
 	context->cb_ud = ud;
 }
 
-void 
+void
 server_globalinit(void) {
 	G_NODE.total = 0;
 	G_NODE.init = 1;
@@ -445,7 +452,7 @@ server_globalinit(void) {
 	server_initthread(THREAD_MAIN);
 }
 
-void 
+void
 server_globalexit(void) {
 	pthread_key_delete(G_NODE.handle_key);
 }
@@ -556,7 +563,7 @@ cmd_setenv(struct server_context * context, const char * param) {
 
 	key[i] = '\0';
 	param += i+1;
-	
+
 	server_setenv(key,param);
 	return NULL;
 }
@@ -659,7 +666,7 @@ static struct command_func cmd_funcs[] = {
 };
 
 //执行某指令函数
-const char * 
+const char *
 server_cmd_command(struct server_context * context, const char * cmd , const char * param) {
 	struct command_func * method = &cmd_funcs[0];
 	while(method->name) {

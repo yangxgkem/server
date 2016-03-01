@@ -11,8 +11,7 @@ function _RUNTIME(...)
         arg[k] = tostring(v)
     end
     local msg = table.concat(arg, "\t")
-	local TimeStr = string.format("[%s]", os.date("%F %T", os.time()))
-	server.error("[RUNTIME]",TimeStr,FileInfo(),msg,"\n")
+	server.error("[RUNTIME]",FileInfo(),msg)
 end
 
 function _RUNTIME_ERROR(...)
@@ -21,8 +20,7 @@ function _RUNTIME_ERROR(...)
         arg[k] = tostring(v)
     end
     local msg = table.concat(arg, "\t")
-	local TimeStr = string.format("[%s]", os.date("%F %T", os.time()))
-	server.error("[RUNTIME_ERROR]",TimeStr,FileInfo(),msg,"\n")
+	server.error("[RUNTIME_ERROR]",FileInfo(),msg)
 end
 
 function _DEBUG(...)
@@ -31,6 +29,5 @@ function _DEBUG(...)
         arg[k] = tostring(v)
     end
     local msg = table.concat(arg, "\t")
-	local TimeStr = string.format("[%s]", os.date("%F %T", os.time()))
-	server.error("[_DEBUG]",TimeStr,FileInfo(),msg,"\n")
+	server.error("[_DEBUG]",FileInfo(),msg)
 end

@@ -11,7 +11,6 @@ pbc = dofile("./3rd/pbc/protobuf.lua")
 bson = require "bson"
 
 cfgData = dofile("./config.lua")
-distributeData,distributeData2 = dofile("./logic/service/distribute/distribute_data.lua")
 
 func_call = {} --协议处理
 
@@ -26,6 +25,7 @@ DOFILELIST =
 	"./logic/base/import.lua",
 	"./logic/base/extend.lua",
 	"./logic/base/efun.lua",
+	"./logic/base/time.lua",
 	"./logic/base/log.lua",
 	"./logic/protocol/protocol.lua",
 	"./logic/base/global.lua",
@@ -40,8 +40,6 @@ local function do_preload()
 	for _,file in pairs(DOFILELIST) do
 		dofile(file)
 	end
-	--把自己也添加进去
-	table.insert(DOFILELIST, "../logic/base/preload.lua")
 end
 
 function perform_gc()

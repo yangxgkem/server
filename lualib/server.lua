@@ -5,9 +5,15 @@ local pairs = pairs
 local pcall = pcall
 local servercore = require "server.core"
 
+local watching_session = {} --缓存RPC调用 {addr = session}
+local watching_service = {}
+local coroutine_pool = {}
+local error_queue = {}
+local session_id_coroutine = {}
+local session_coroutine_address = {}
+local session_coroutine_id = {}
+
 local server = {}
-server.timeoutFuncs = {} --定时器函数
-server.callFuncs = {} --向其他服务请求数据回调函数
 server.protos = {} --消息类型处理函数
 server.serviceNameCache = {} --服务名称缓存
 server.ptypes = {
@@ -22,6 +28,110 @@ server.ptypes = {
 
 local function string_to_handle(str)
 	return tonumber("0x" .. string.sub(str , 2))
+end
+
+local function co_create(f)
+	local co = table.remove(coroutine_pool)
+	if co == nil then
+		co = coroutine.create(function(...)
+			f(...)
+			while true do
+				f = nil
+				coroutine_pool[#coroutine_pool+1] = co
+				f = coroutine.yield("EXIT")
+				f(coroutine.yield())
+			end
+		end)
+	else
+		coroutine.resume(co, f)
+	end
+	return co
+end
+
+local function yield_call(service, session)
+	watching_session[session] = service
+	local succ, msg, sz = coroutine.yield("CALL", session)
+	watching_session[session] = nil
+	if not succ then
+		error "call failed"
+	end
+	return msg, sz
+end
+
+local function release_watching(address)
+	local ref = watching_service[address]
+	if ref then
+		ref = ref - 1
+		if ref > 0 then
+			watching_service[address] = ref
+		else
+			watching_service[address] = nil
+		end
+	end
+end
+
+local function dispatch_error_queue()
+	local session = table.remove(error_queue, 1)
+	if session then
+		local co = session_id_coroutine[session]
+		session_id_coroutine[session] = nil
+		return suspend(co, coroutine_resume(co, false))
+	end
+end
+
+local function _error_dispatch(error_session, error_source)
+	if error_session == 0 then
+		-- service is down
+		-- Don't remove from watching_service , because user may call dead service
+		if watching_service[error_source] then
+			dead_service[error_source] = true
+		end
+		for session, srv in pairs(watching_session) do
+			if srv == error_source then
+				table.insert(error_queue, session)
+			end
+		end
+	else
+		-- capture an error for error_session
+		if watching_session[error_session] then
+			table.insert(error_queue, error_session)
+		end
+	end
+end
+
+function suspend(co, result, command, param)
+	server.error(result, command, param)
+	-- coroutine return false
+	if not result then
+		local session = session_coroutine_id[co]
+		if session then
+			local addr = session_coroutine_address[co]
+			if session ~= 0 then
+				server.send(addr, server.ptypes.PTYPE_ERROR, session, server.pack({}))
+			end
+			session_coroutine_id[co] = nil
+			session_coroutine_address[co] = nil
+		end
+		error(debug.traceback(co, tostring(command)))
+	end
+
+	-- rpc
+	if command == "CALL" then
+		session_id_coroutine[param] = co
+	-- coroutine exit
+	elseif command == "EXIT" then
+		local address = session_coroutine_address[co]
+		release_watching(address)
+		session_coroutine_id[co] = nil
+		session_coroutine_address[co] = nil
+	-- service exit
+	elseif command == "QUIT" then
+		return
+	else
+		error("Unknown command : " .. command .. "\n" .. debug.traceback(co))
+	end
+
+	dispatch_error_queue()
 end
 
 --lua数据消息打包为userdata
@@ -65,8 +175,9 @@ end
 function server.timeout(ti, func)
 	local session = servercore.command("TIMEOUT",tostring(ti))
 	assert(session)
-	session = tonumber(session)
-	server.timeoutFuncs[session] = func
+	local co = co_create(func)
+	assert(session_id_coroutine[session] == nil)
+	session_id_coroutine[tonumber(session)] = co
 end
 
 --获取当前服务handleid
@@ -115,6 +226,7 @@ end
 --退出本服务
 function server.exit()
 	servercore.command("EXIT")
+	coroutine.yield("QUIT")
 end
 
 --向某服务发送数据
@@ -127,6 +239,11 @@ end
 function server.sendname(addrname, typename, msg, sz)
 	local p = server.protos[typename]
 	if not server.serviceNameCache[addrname] then
+		local name = server.localname(addrname)
+		if not name then
+			server.error("has not service:", addrname)
+			return
+		end
 		server.serviceNameCache[addrname] = server.localname(addrname)
 	end
 	return servercore.send(server.serviceNameCache[addrname] or addrname, p.ptype, 0 , msg, sz)
@@ -145,9 +262,7 @@ function server.call(addr, typename, msg, sz, func)
 	if session == nil then
 		error("call to invalid address " .. server.address(addr))
 	end
-	session = tonumber(session)
-	server.callFuncs[session] = {typename, func}
-	return session
+	return yield_call(addr, session)
 end
 
 --服务返回数据给其他服务
@@ -182,30 +297,29 @@ end
 
 --消息出来分发
 local function raw_dispatch_message(ptype, msg, sz, session, source)
-	--server.error(ptype, msg, sz, session, source)
-	if server.protos[ptype] then
+	--定时器回调 或 RPC返回数据
+	if ptype == server.ptypes.PTYPE_RESPONSE then
+		local co = session_id_coroutine[session]
+		session_id_coroutine[session] = nil
+		suspend(co, coroutine.resume(co, true, msg, sz))
+	--处理协议
+	elseif server.protos[ptype] then
 		local p = server.protos[ptype]
-		p.dispatch(msg, sz, session, source)
-	elseif ptype == server.ptypes.PTYPE_TEXT then
-		server.error(ptype, msg, sz, session, source)
-	elseif ptype == server.ptypes.PTYPE_RESPONSE then
-		--定时器
-		local func = server.timeoutFuncs[session]
-		if func then
-			func()
-			server.timeoutFuncs[session] = nil
-			return
+		local f = p.dispatch
+		local ref = watching_service[source]
+		if ref then
+			watching_service[source] = ref + 1
+		else
+			watching_service[source] = 1
 		end
-		--获取服务消息回调
-		func = server.callFuncs[session]
-		if func then
-			local p = server.protos[(func[1])]
-			p.dispatch(msg, sz, session, source, func[2])
-			server.callFuncs[session] = nil
-		end
-		server.error(string.format("Unknown session : %d from %x", session, source))
+		local co = co_create(f)
+		session_coroutine_id[co] = session
+		session_coroutine_address[co] = source
+		suspend(co, coroutine.resume(co, msg, sz, session, source))
+	--协议未定义
 	else
-		server.error(string.format("Has Not protos:%s, session : %d from %x", ptype, session, source))
+		server.error(string.format("Unknown request (%s): %s", prototype, server.tostring(msg, sz)))
+		error(string.format("Unknown session : %d from %x", session, source))
 	end
 end
 

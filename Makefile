@@ -75,4 +75,5 @@ $(LUA_CLIB_PATH)/bson.so : lualib-src/lua-bson.c | $(LUA_CLIB_PATH)
 
 clean :
 	rm -f $(SERVER_BUILD_PATH)/server $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
+	rm runtime.log
 	cd 3rd/lua && $(MAKE) clean

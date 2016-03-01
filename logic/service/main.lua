@@ -1,19 +1,18 @@
 dofile("./logic/base/preload.lua")
 
 function test()
-	server.sendname("#db", "lua", server.pack({
+	local msg,sz = server.call(".test", "lua", server.pack({
 		cmd = "socket",
-		funcname = "checkpbc",
+		funcname = "print",
 	}))
-	server.timeout(300, test)
+    local params = server.unpack(msg, sz)
+    _RUNTIME(params)
 end
 
 server.start(function()
 	server.register(".mainservice")
-	--分布式服务
-	--server.newservice("snlua distribute")
-	--网关服务
-	--server.newservice("snlua logicsocket")
 
-	--server.timeout(300, test)
+    server.newservice("snlua test")
+
+	server.timeout(300, test)
 end)
