@@ -1,12 +1,11 @@
 dofile("./logic/base/preload.lua")
 
 function test()
-	local msg,sz = server.call(".test", "lua", server.pack({
-		cmd = "socket",
+	local msg = server.call(".test", "lua", {
+		addmsg = "main service",
 		funcname = "print",
-	}))
-    local params = server.unpack(msg, sz)
-    _RUNTIME(params)
+	})
+    _RUNTIME(msg)
 end
 
 server.start(function()
@@ -14,5 +13,5 @@ server.start(function()
 
     server.newservice("snlua test")
 
-	server.timeout(300, test)
+	server.timeout(100, test)
 end)

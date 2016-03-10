@@ -78,4 +78,11 @@ function socket.unpack(msg, size)
 	return driver.unpack(msg, size)
 end
 
+--主动注册消息事件
+server.register_protocol({
+	name = "socket",
+	ptype = server.ptypes.PTYPE_SOCKET,
+	unpack = server.unpack,
+})
+
 return socket

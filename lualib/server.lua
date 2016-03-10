@@ -4,6 +4,7 @@ local assert = assert
 local pairs = pairs
 local pcall = pcall
 local servercore = require "server.core"
+local serverco = require "serverco"
 
 local watching_session = {} --缓存RPC调用 {addr = session}
 local watching_service = {}
@@ -12,6 +13,7 @@ local error_queue = {}
 local session_id_coroutine = {}
 local session_coroutine_address = {}
 local session_coroutine_id = {}
+local dead_service = {}
 
 local server = {}
 server.protos = {} --消息类型处理函数
@@ -33,27 +35,27 @@ end
 local function co_create(f)
 	local co = table.remove(coroutine_pool)
 	if co == nil then
-		co = coroutine.create(function(...)
+		co = serverco.create(function(...)
 			f(...)
 			while true do
 				f = nil
 				coroutine_pool[#coroutine_pool+1] = co
-				f = coroutine.yield("EXIT")
-				f(coroutine.yield())
+				f = serverco.yield("EXIT")
+				f(serverco.yield())
 			end
 		end)
 	else
-		coroutine.resume(co, f)
+		serverco.resume(co, f)
 	end
 	return co
 end
 
 local function yield_call(service, session)
 	watching_session[session] = service
-	local succ, msg, sz = coroutine.yield("CALL", session)
+	local succ, msg, sz = serverco.yield("CALL", session)
 	watching_session[session] = nil
 	if not succ then
-		error "call failed"
+		error("call failed")
 	end
 	return msg, sz
 end
@@ -75,7 +77,7 @@ local function dispatch_error_queue()
 	if session then
 		local co = session_id_coroutine[session]
 		session_id_coroutine[session] = nil
-		return suspend(co, coroutine_resume(co, false))
+		return suspend(co, serverco.resume(co, false))
 	end
 end
 
@@ -100,14 +102,14 @@ local function _error_dispatch(error_session, error_source)
 end
 
 function suspend(co, result, command, param)
-	server.error(result, command, param)
+	--server.error("suspend......", result, command, param)
 	-- coroutine return false
 	if not result then
 		local session = session_coroutine_id[co]
 		if session then
 			local addr = session_coroutine_address[co]
 			if session ~= 0 then
-				server.send(addr, server.ptypes.PTYPE_ERROR, session, server.pack({}))
+				servercore.send(addr, server.ptypes.PTYPE_ERROR, session, "") --告诉rpc请求方,我这边出错了,无法返回你想要的信息
 			end
 			session_coroutine_id[co] = nil
 			session_coroutine_address[co] = nil
@@ -226,13 +228,13 @@ end
 --退出本服务
 function server.exit()
 	servercore.command("EXIT")
-	coroutine.yield("QUIT")
+	serverco.yield("QUIT")
 end
 
 --向某服务发送数据
-function server.send(addr, typename, msg, sz)
+function server.send(addr, typename, msg)
 	local p = server.protos[typename]
-	return servercore.send(addr, p.ptype, 0 , msg, sz)
+	return servercore.send(addr, p.ptype, 0, p.pack(msg))
 end
 
 --根据服务名称发送数据
@@ -256,13 +258,13 @@ function server.redirect(dest, source, typename, session, msg, sz)
 end
 
 --向某服务请求数据
-function server.call(addr, typename, msg, sz, func)
+function server.call(addr, typename, msg)
 	local p = server.protos[typename]
-	local session = servercore.send(addr, p.ptype, nil, msg, sz)
+	local session = servercore.send(addr, p.ptype, nil, p.pack(msg))
 	if session == nil then
 		error("call to invalid address " .. server.address(addr))
 	end
-	return yield_call(addr, session)
+	return p.unpack(yield_call(addr, session))
 end
 
 --服务返回数据给其他服务
@@ -297,11 +299,12 @@ end
 
 --消息出来分发
 local function raw_dispatch_message(ptype, msg, sz, session, source)
+	--server.error("raw_dispatch_message......", ptype, session, source)
 	--定时器回调 或 RPC返回数据
 	if ptype == server.ptypes.PTYPE_RESPONSE then
 		local co = session_id_coroutine[session]
 		session_id_coroutine[session] = nil
-		suspend(co, coroutine.resume(co, true, msg, sz))
+		suspend(co, serverco.resume(co, true, msg, sz))
 	--处理协议
 	elseif server.protos[ptype] then
 		local p = server.protos[ptype]
@@ -315,7 +318,7 @@ local function raw_dispatch_message(ptype, msg, sz, session, source)
 		local co = co_create(f)
 		session_coroutine_id[co] = session
 		session_coroutine_address[co] = source
-		suspend(co, coroutine.resume(co, msg, sz, session, source))
+		suspend(co, serverco.resume(co, session, source, p.unpack(msg, sz)))
 	--协议未定义
 	else
 		server.error(string.format("Unknown request (%s): %s", prototype, server.tostring(msg, sz)))
@@ -344,16 +347,16 @@ end
 
 --主动注册消息事件
 server.register_protocol({
-	name = "socket",
-	ptype = server.ptypes.PTYPE_SOCKET,
-})
-server.register_protocol({
 	name = "lua",
 	ptype = server.ptypes.PTYPE_LOGIC_LUA,
+	pack = server.pack,
+	unpack = server.unpack,
 })
 server.register_protocol({
 	name = "error",
 	ptype = server.ptypes.PTYPE_ERROR,
+	unpack = function(msg, sz) return msg end,
+	dispatch = _error_dispatch,
 })
 server.register_protocol({
 	name = "harbor",

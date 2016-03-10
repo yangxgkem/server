@@ -3,14 +3,13 @@ dofile("./logic/base/preload.lua")
 local test = {}
 
 function test.print(params, source)
-    return "hello"
+    return "hello " .. params.addmsg
 end
 
 server.start(function()
-	server.register("#test")
+	server.register(".test")
 
-    server.dispatch("lua", function(msg, sz, session, source)
-        local params = server.unpack(msg, sz)
+    server.dispatch("lua", function(session, source, params)
         local funcname = params.funcname
         local msg = test[funcname](params, source)
         server.ret(source, session, server.pack(msg))
