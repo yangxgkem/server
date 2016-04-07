@@ -24,7 +24,7 @@ PBC_SRC = alloc.c array.c bootstrap.c context.c decode.c map.c pattern.c \
 # server
 
 CSERVICE = snlua logger
-LUA_CLIB = protobuf_c server socketdriver harbor memory lfs bson
+LUA_CLIB = protobuf_c server socketdriver harbor memory lfs bson aoi
 
 SERVER_SRC = main.c malloc_hook.c server_env.c server_error.c server_handle.c \
 	server_harbor.c server_imp.c server_log.c server_module.c server_monitor.c \
@@ -72,6 +72,9 @@ $(LUA_CLIB_PATH)/lfs.so : 3rd/lfs/lfs.c | $(LUA_CLIB_PATH)
 
 $(LUA_CLIB_PATH)/bson.so : lualib-src/lua-bson.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -Iserver-src
+
+$(LUA_CLIB_PATH)/aoi.so : 3rd/aoi/aoi.c 3rd/aoi/laoi.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -Iserver-src $^ -o $@
 
 clean :
 	rm -f $(SERVER_BUILD_PATH)/server $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
