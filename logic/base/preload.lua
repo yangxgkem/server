@@ -18,7 +18,7 @@ func_call = {} --协议处理
 --模块的载入顺序是敏感的
 --大家尽量少使用dofile，那是必须全局载入的相对模块
 --此Table会被其他模块访问，这些模块不允许被Import
-DOFILELIST = 
+DOFILELIST =
 {
 	"./logic/base/macros.lua",
 	"./logic/base/class.lua",
