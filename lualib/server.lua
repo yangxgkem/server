@@ -8,6 +8,7 @@ local serverco = require "serverco"
 
 local watching_session = {} --缓存RPC调用 {addr = session}
 local watching_service = {}
+local sleep_session = {}
 local coroutine_pool = {}
 local error_queue = {}
 local session_id_coroutine = {}
@@ -120,6 +121,10 @@ function suspend(co, result, command, param)
 	-- rpc
 	if command == "CALL" then
 		session_id_coroutine[param] = co
+	-- sleep
+	elseif command == "SLEEP" then
+		session_id_coroutine[param] = co
+		sleep_session[co] = param
 	-- coroutine exit
 	elseif command == "EXIT" then
 		local address = session_coroutine_address[co]
@@ -180,6 +185,19 @@ function server.timeout(ti, func)
 	local co = co_create(func)
 	assert(session_id_coroutine[session] == nil)
 	session_id_coroutine[tonumber(session)] = co
+end
+
+--将当前 coroutine 挂起 ti 个单位时间
+function server.sleep(ti)
+	local session = servercore.command("TIMEOUT",tostring(ti))
+	assert(session)
+	local succ, msg, sz = serverco.yield("SLEEP", tonumber(session))
+	sleep_session[coroutine.running()] = nil
+	if succ then
+		return
+	else
+		error(ret)
+	end
 end
 
 --获取当前服务handleid
@@ -299,8 +317,8 @@ end
 
 --消息出来分发
 local function raw_dispatch_message(ptype, msg, sz, session, source)
-	--server.error("raw_dispatch_message......", ptype, session, source)
-	--定时器回调 或 RPC返回数据
+	--server.error("raw_dispatch_message......", ptype, session, source, msg, sz)
+	--定时器回调(包括普通定时器和sleep后唤醒定时器) 或 RPC返回数据
 	if ptype == server.ptypes.PTYPE_RESPONSE then
 		local co = session_id_coroutine[session]
 		session_id_coroutine[session] = nil

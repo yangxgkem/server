@@ -85,7 +85,7 @@ add_node(struct timer *T,struct timer_node *node) {
 			}
 			mask <<= TIME_LEVEL_SHIFT;
 		}
-		link(&T->t[i][((time>>(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) & TIME_LEVEL_MASK)],node);	
+		link(&T->t[i][((time>>(TIME_NEAR_SHIFT + i*TIME_LEVEL_SHIFT)) & TIME_LEVEL_MASK)],node);
 	}
 }
 
@@ -124,7 +124,7 @@ dispatch_list(struct timer_node *current) {
 		message.sz = PTYPE_RESPONSE << HANDLE_REMOTE_SHIFT;
 
 		server_context_push(event->handle, &message);
-		
+
 		struct timer_node * temp = current;
 		current=current->next;
 		server_free(temp);
@@ -161,7 +161,7 @@ timer_shift(struct timer *T) {
 			int idx=time & TIME_LEVEL_MASK;//63[0011 1111]
 			if (idx!=0) {
 				move_list(T, i, idx);
-				break;				
+				break;
 			}
 			mask <<= TIME_LEVEL_SHIFT;//6
 			time >>= TIME_LEVEL_SHIFT;
@@ -171,7 +171,7 @@ timer_shift(struct timer *T) {
 	UNLOCK(T);
 }
 
-static void 
+static void
 timer_update(struct timer *T) {
 	// try to dispatch timeout 0 (rare condition)
 	timer_execute(T);
@@ -201,7 +201,7 @@ server_timer_timeout(uint32_t handle, int time, int session) {
 		event.session = session;
 		timer_add(TI, &event, sizeof(event), time);
 	}
-	
+
 	return session;
 }
 
@@ -231,7 +231,7 @@ server_timer_create_timer() {
 
 /*
 	 struct timespec
-    {  
+    {
         time_t tv_sec;//秒
         long tv_nsec;//纳秒 10亿纳秒==1秒
     }
@@ -292,13 +292,13 @@ server_timer_gettime_fixsec(void) {
 }
 
 //获取定时器启动到现在经过了多少(秒*100)
-uint32_t 
+uint32_t
 server_timer_gettime(void) {
 	return TI->current;
 }
 
 //初始化定时器
-void 
+void
 server_timer_init(void) {
 	TI = server_timer_create_timer();
 	systime(&TI->starttime, &TI->current);

@@ -77,6 +77,6 @@ $(LUA_CLIB_PATH)/aoi.so : 3rd/aoi/aoi.c 3rd/aoi/laoi.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -Iserver-src $^ -o $@
 
 clean :
-	rm -f $(SERVER_BUILD_PATH)/server $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
-	rm runtime.log
+	rm -fr $(SERVER_BUILD_PATH)/server $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so
+	rm -fr runtime.log
 	cd 3rd/lua && $(MAKE) clean

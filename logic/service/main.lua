@@ -12,6 +12,7 @@ server.start(function()
 	server.register(".mainservice")
 
     server.newservice("snlua test")
+    server.newservice("snlua test_aoi")
 
 	server.timeout(100, test)
 end)

@@ -14,5 +14,4 @@ server.start(function()
         local msg = test[funcname](params, source)
         server.ret(source, session, server.pack(msg))
     end)
-
 end)
