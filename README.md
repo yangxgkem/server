@@ -9,7 +9,17 @@ logic是业务层代码，当前只做了业务tcp服务logicsocket
 
 编译 make linux
 
-
 skynet：https://github.com/cloudwu/skynet
 
 lua5.3doc：http://cloudwu.github.io/lua53doc/manual.html
+
+----------------------------------------
+2016.4.8
+
+添加场景aoi
+
+开发笔记 (13) : AOI 服务的设计与实现： http://blog.codingnow.com/2012/03/dev_note_13.html
+
+开发笔记(26) : AOI 以及移动模块： http://blog.codingnow.com/2012/09/dev_note_26.html
+
+开发笔记(28) : 重构优化： http://blog.codingnow.com/2012/11/dev_note_28.html
