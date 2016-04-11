@@ -122,7 +122,7 @@ _aoi_update(lua_State *L) {
 }
 
 static void
-aoi_cb_message(void *ud, uint32_t watcher, uint32_t marker, uint8_t type) {
+aoi_cb_message(void *ud, uint32_t watcher, uint32_t marker) {
     struct laoi_cb * clua = ud;
     clua->cb_num++;
     lua_State * L = clua->L;
@@ -136,10 +136,6 @@ aoi_cb_message(void *ud, uint32_t watcher, uint32_t marker, uint8_t type) {
 
     lua_pushstring(L, "m");
     lua_pushnumber(L, marker);
-    lua_rawset(L, -3);
-
-    lua_pushstring(L, "t");
-    lua_pushnumber(L, type);
     lua_rawset(L, -3);
 
     lua_rawset(L, -3);
@@ -159,11 +155,11 @@ _aoi_message(lua_State *L) {
     lua_pushnumber(L, clua.cb_num);
     lua_rawset(L, -3);
 
-    lua_pushstring(L, "begin_time");
+    lua_pushstring(L, "begin_time"); //微秒
     lua_pushnumber(L, clua.begin_time);
     lua_rawset(L, -3);
 
-    lua_pushstring(L, "end_time");
+    lua_pushstring(L, "end_time"); //微秒
     lua_pushnumber(L, clua.end_time);
     lua_rawset(L, -3);
 
