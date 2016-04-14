@@ -1,6 +1,4 @@
-dofile("./logic/base/preload.lua")
-
-local AgentCacheNum = 100 --agent池缓存数量
+local AgentCacheNum = 500 --agent池缓存数量
 local AgentCacheAdd = 50 --agent池每次添加数量
 
 local lg_socket = {}
@@ -17,7 +15,7 @@ lg_socket.reserve_id = nil
 --是否已成功连接
 lg_socket.connect = false
 
---代理服务列表
+--代理服务池
 lg_socket.agents = {}
 
 --agent池
@@ -31,7 +29,7 @@ local function check_agent_slot()
 
 	if new_num > 0 then
 		for i=1, new_num do
-			local id = server.newservice("snlua logicsocket_agent")
+			local id = server.newservice("snlua logic logicsocket/logicsocket_agent")
 			table.insert(lg_socket.agents, id)
 		end
 	end
@@ -39,8 +37,8 @@ end
 
 --获取一个agent
 local function get_one_agent()
-	check_agent_slot()
-	return table.remove(lg_socket.agents)
+	if #lg_socket.agents <= 0 then return end
+	return table.remove(lg_socket.agents, 1)
 end
 
 --定时检查agent池
@@ -74,13 +72,14 @@ function lg_socket.dispatch()
 
 	--socket关闭
 	local function closef(id)
-		assert(lg_socket.reserve_id==id)
+		if lg_socket.reserve_id ~= id then return end
 		server.error("LogicServer close............"..lg_socket.port)
 	end
 
 	--有客户端socket连入
 	local function acceptf(serverid, clientid, clientaddr)
 		local id = get_one_agent()
+		if not id then return socket.close(clientid) end
 		server.send(id, "lua", {
 			["_func"] = "accept",
 			["reserve_id"] = clientid,

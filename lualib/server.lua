@@ -243,6 +243,24 @@ function server.setenv(key, value)
 	servercore.command("SETENV",key .. " " ..value)
 end
 
+--开启某服务日志
+function server.openlog(service_name)
+	if service_name then
+		servercore.command("LOGON", service_name)
+	else
+		servercore.command("LOGON")
+	end
+end
+
+--关闭某服务日志
+function server.closelog(service_name)
+	if service_name then
+		servercore.command("LOGOFF", service_name)
+	else
+		servercore.command("LOGOFF")
+	end
+end
+
 --退出本服务
 function server.exit()
 	servercore.command("EXIT")

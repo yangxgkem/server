@@ -1,5 +1,3 @@
-dofile("./logic/base/preload.lua")
-
 local MaxReadDataSize = 65535 --最大读取数据大小
 
 local agent = {}

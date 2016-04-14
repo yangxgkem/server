@@ -587,7 +587,12 @@ cmd_mqlen(struct server_context * context, const char * param) {
 //开启某服务日志
 static const char *
 cmd_logon(struct server_context * context, const char * param) {
-	uint32_t handle = tohandle(context, param);
+	uint32_t handle;
+	if (param == NULL) {
+		handle = context->handle;
+	} else {
+		handle = tohandle(context, param);
+	}
 	if (handle == 0)
 		return NULL;
 	struct server_context * ctx = server_handle_grab(handle);
@@ -611,7 +616,12 @@ cmd_logon(struct server_context * context, const char * param) {
 //关闭某服务日志
 static const char *
 cmd_logoff(struct server_context * context, const char * param) {
-	uint32_t handle = tohandle(context, param);
+	uint32_t handle;
+	if (param == NULL) {
+		handle = context->handle;
+	} else {
+		handle = tohandle(context, param);
+	}
 	if (handle == 0)
 		return NULL;
 	struct server_context * ctx = server_handle_grab(handle);

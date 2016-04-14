@@ -13,7 +13,7 @@ config["thread"] = 5
 config["logger"] = "runtime.log"
 
 --服务日志
-config["logpath"] = nil
+config["logpath"] = "logs"
 
 --C服务.so目录
 config["cpath"] = config.root.."cservice/?.so"
@@ -40,8 +40,6 @@ config["serverport"] = 6001
 luaservice = {}
 table.insert(luaservice, config.root.."lualib/?.lua")
 table.insert(luaservice, config.root.."logic/service/?.lua")
-table.insert(luaservice, config.root.."logic/service/distribute/?.lua")
-table.insert(luaservice, config.root.."logic/service/logicsocket/?.lua")
 config["luaservice"] = table.concat(luaservice, ";")
 
 
