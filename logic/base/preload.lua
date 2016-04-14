@@ -31,7 +31,7 @@ DOFILELIST =
 	"./logic/base/global.lua",
 }
 
-local function OnStart()
+local function on_start()
 	--播下随机种子
 	math.randomseed(tostring(os.time()):reverse():sub(1, 6))
 end
@@ -47,6 +47,6 @@ function perform_gc()
 	server.timeout(500, perform_gc)
 end
 
-OnStart()
+on_start()
 do_preload()
 perform_gc()

@@ -23,3 +23,8 @@ lua5.3doc：http://cloudwu.github.io/lua53doc/manual.html
 开发笔记(26) : AOI 以及移动模块： http://blog.codingnow.com/2012/09/dev_note_26.html
 
 开发笔记(28) : 重构优化： http://blog.codingnow.com/2012/11/dev_note_28.html
+
+----------------------------------------
+2016.4.13
+
+添加 mysql

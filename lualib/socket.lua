@@ -24,8 +24,7 @@ function socket.dispatch(dataf, connectf, closef, acceptf, errorf)
 	--socket出现错误(reserve_id, 占位符, 占位符) (id)
 	socket.dispatchs[SERVER_SOCKET_TYPE_ERROR] = errorf
 
-	local function func(msg, sz, session, source)
-		local socktype,id,size,data = driver.unpack(msg, sz)
+	local function func(session, source, socktype, id, size, data)
 		socket.dispatchs[socktype](id,size,data)
 	end
 	server.dispatch(server.ptypes.PTYPE_SOCKET, func)
@@ -82,7 +81,7 @@ end
 server.register_protocol({
 	name = "socket",
 	ptype = server.ptypes.PTYPE_SOCKET,
-	unpack = server.unpack,
+	unpack = driver.unpack,
 })
 
 return socket

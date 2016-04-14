@@ -24,7 +24,7 @@ PBC_SRC = alloc.c array.c bootstrap.c context.c decode.c map.c pattern.c \
 # server
 
 CSERVICE = snlua logger
-LUA_CLIB = protobuf_c server socketdriver harbor memory lfs bson aoi
+LUA_CLIB = protobuf_c server socketdriver harbor memory lfs bson aoi luamysql
 
 SERVER_SRC = main.c malloc_hook.c server_env.c server_error.c server_handle.c \
 	server_harbor.c server_imp.c server_log.c server_module.c server_monitor.c \
@@ -75,6 +75,9 @@ $(LUA_CLIB_PATH)/bson.so : lualib-src/lua-bson.c | $(LUA_CLIB_PATH)
 
 $(LUA_CLIB_PATH)/aoi.so : 3rd/aoi/aoi.c 3rd/aoi/laoi.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -Iserver-src $^ -o $@
+
+$(LUA_CLIB_PATH)/luamysql.so : 3rd/mysql/luamysql.c | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -Iserver-src $^ -o $@ $(LUAMYSQL_CFLAGS)
 
 clean :
 	rm -fr $(SERVER_BUILD_PATH)/server $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so

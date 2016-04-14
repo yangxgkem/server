@@ -15,6 +15,7 @@ struct laoi_cookie {
     int current;
 };
 
+// 此结构体创建后,将不会释放掉,主要是用于预付中层操作失误(如多次执行gc)导致程序崩溃。它只会占用微不足道的内存。
 struct laoi_space {
     uint32_t map_id;
     float map_x;
@@ -177,7 +178,6 @@ _aoi_release(lua_State *L) {
     lspace->space = NULL;
     server_free(lspace->cookie);
     lspace->cookie = NULL;
-    server_free(lspace);
 
     return 0;
 }

@@ -20,7 +20,10 @@
 struct monitor {
 	int count;//总线程数
 	struct server_monitor ** m;//工作线程监控数组
+	pthread_cond_t cond;
+	pthread_mutex_t mutex;
 	int sleep;
+	int quit;
 };
 
 struct worker_parm {
@@ -39,6 +42,14 @@ create_thread(pthread_t *thread, void *(*start_routine) (void *), void *arg) {
 	}
 }
 
+static void
+wakeup(struct monitor *m, int busy) {
+	if (m->sleep >= m->count - busy) {
+		// signal sleep worker, "spurious wakeup" is harmless
+		pthread_cond_signal(&m->cond);
+	}
+}
+
 //卸载monitor
 static void
 free_monitor(struct monitor *m) {
@@ -47,6 +58,8 @@ free_monitor(struct monitor *m) {
 	for (i=0;i<n;i++) {
 		server_monitor_delete(m->m[i]);
 	}
+	pthread_mutex_destroy(&m->mutex);
+	pthread_cond_destroy(&m->cond);
 	server_free(m->m);
 	server_free(m);
 }
@@ -76,19 +89,29 @@ _monitor(void *p) {
 //定时器线程
 static void *
 _timer(void *p) {
+	struct monitor * m = p;
 	server_initthread(THREAD_TIMER);
 	server_error(NULL, "THREAD timer running");
 	for (;;) {
 		server_timer_updatetime();
 		CHECK_ABORT
-		usleep(2500);
+		wakeup(m, m->count-1);
+		usleep(5000);
 	}
+	// wakeup socket thread
+	server_socket_exit();
+	// wakeup all worker thread
+	pthread_mutex_lock(&m->mutex);
+	m->quit = 1;
+	pthread_cond_broadcast(&m->cond);
+	pthread_mutex_unlock(&m->mutex);
 	return NULL;
 }
 
 //socket线程
 static void *
 _socket(void *p) {
+	struct monitor * m = p;
 	server_initthread(THREAD_SOCKET);
 	server_error(NULL, "THREAD socket running");
 	for (;;) {
@@ -99,6 +122,7 @@ _socket(void *p) {
 			CHECK_ABORT
 			continue;
 		}
+		wakeup(m, 0);
 	}
 	return NULL;
 }
@@ -113,10 +137,22 @@ _worker(void *p) {
 	server_initthread(THREAD_WORKER);
 	server_error(NULL, "THREAD worker:%d running", id);
 	struct message_queue * q = NULL;
-	for (;;) {
+	while (!m->quit) {
 		q = server_context_message_dispatch(sm, q);
 		if (q == NULL) {
-			usleep(2500);
+			if (pthread_mutex_lock(&m->mutex) == 0) {
+				++ m->sleep;
+				// "spurious wakeup" is harmless,
+				// because skynet_context_message_dispatch() can be call at any time.
+				if (!m->quit) {
+					pthread_cond_wait(&m->cond, &m->mutex);
+				}
+				-- m->sleep;
+				if (pthread_mutex_unlock(&m->mutex)) {
+					fprintf(stderr, "unlock mutex error");
+					exit(1);
+				}
+			}
 		}
 	}
 	return NULL;
@@ -136,6 +172,15 @@ _start(int thread) {
 	int i;
 	for (i=0;i<thread;i++) {
 		m->m[i] = server_monitor_new();
+	}
+
+	if (pthread_mutex_init(&m->mutex, NULL)) {
+		fprintf(stderr, "Init mutex error");
+		exit(1);
+	}
+	if (pthread_cond_init(&m->cond, NULL)) {
+		fprintf(stderr, "Init cond error");
+		exit(1);
 	}
 
 	create_thread(&pid[0], _monitor, m);

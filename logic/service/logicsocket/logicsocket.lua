@@ -1,111 +1,116 @@
 dofile("./logic/base/preload.lua")
 
-local OpenAgentNum = 100 --启动代理服务个数
-local ContentMaxNum = 10000 --最大连接数
+local AgentCacheNum = 100 --agent池缓存数量
+local AgentCacheAdd = 50 --agent池每次添加数量
 
-local LOGIC_SOCKET = {}
-LOGIC_SOCKET.host = nil --服务器IP
-LOGIC_SOCKET.port = nil --服务器端口
-LOGIC_SOCKET.reserve_id = nil --服务器socket reserve_id
-LOGIC_SOCKET.connect = false --是否已成功连接
-LOGIC_SOCKET.cmds = {} --消息函数
-LOGIC_SOCKET.agents = {} --代理服务列表
+local lg_socket = {}
 
+--服务器IP
+lg_socket.host = nil
 
---注册socket消息处理函数
-function LOGIC_SOCKET.dispatch()
-	--服务器socket启动成功
-	local function connectf(id, _, addr)
-		assert(LOGIC_SOCKET.reserve_id==id)
-		server.error("LogicServer running............"..LOGIC_SOCKET.port)
-		LOGIC_SOCKET.connect = true
+--服务器端口
+lg_socket.port = nil
+
+--服务器socket reserve_id
+lg_socket.reserve_id = nil
+
+--是否已成功连接
+lg_socket.connect = false
+
+--代理服务列表
+lg_socket.agents = {}
+
+--agent池
+local function check_agent_slot()
+	local num = #lg_socket.agents
+	local new_num = 0
+
+	if num < AgentCacheNum then
+		new_num = (AgentCacheNum-num)+AgentCacheAdd
 	end
 
-	--socket关闭,有可能是客户端id回调到这里,客户端数量已达上限,主动关闭后回调此函数
+	if new_num > 0 then
+		for i=1, new_num do
+			local id = server.newservice("snlua logicsocket_agent")
+			table.insert(lg_socket.agents, id)
+		end
+	end
+end
+
+--获取一个agent
+local function get_one_agent()
+	check_agent_slot()
+	return table.remove(lg_socket.agents)
+end
+
+--定时检查agent池
+local function time_check_agent()
+	check_agent_slot()
+	server.timeout(100, time_check_agent)
+end
+
+--启动服务器socket
+local function listen(host, port, backlog)
+	assert(not lg_socket.reserve_id)
+
+	local id = socket.listen(host, port, backlog)
+	assert(id ~= nil)
+
+	lg_socket.reserve_id = id
+	lg_socket.host = host
+	lg_socket.port = port
+
+	socket.start(id)
+end
+
+--注册socket消息处理函数
+function lg_socket.dispatch()
+	--服务器socket启动成功
+	local function connectf(id, _, addr)
+		assert(lg_socket.reserve_id==id)
+		lg_socket.connect = true
+		server.error("LogicServer running............"..lg_socket.port)
+	end
+
+	--socket关闭
 	local function closef(id)
-		if id ~= LOGIC_SOCKET.reserve_id then return end
-		server.error("LogicServer close............"..LOGIC_SOCKET.port)
+		assert(lg_socket.reserve_id==id)
+		server.error("LogicServer close............"..lg_socket.port)
 	end
 
 	--有客户端socket连入
 	local function acceptf(serverid, clientid, clientaddr)
-		for id,data in pairs(LOGIC_SOCKET.agents) do
-			if data.num < math.ceil(ContentMaxNum/OpenAgentNum) then
-				data.num = data.num + 1
-				data.clients[clientid] = clientaddr
-				server.send(id, "lua", server.pack({
-					["funcname"] = "accept",
-					["reserve_id"] = clientid,
-					["addr"] = clientaddr,
-				}))
-				return
-			end
-		end
-		--客户端连接数量已达上限,直接关闭
-		server.error("LogicServer over............"..clientaddr)
-		socket.close(clientid)
+		local id = get_one_agent()
+		server.send(id, "lua", {
+			["_func"] = "accept",
+			["reserve_id"] = clientid,
+			["addr"] = clientaddr,
+		})
 	end
 
 	--启动服务器socket失败
 	local function errorf(id)
-		assert(LOGIC_SOCKET.reserve_id==id)
+		assert(lg_socket.reserve_id==id)
 		assert(false, "LogicServer error............")
 	end
 
 	socket.dispatch(nil, connectf, closef, acceptf, errorf)
 end
 
---启动服务器socket
-function LOGIC_SOCKET.listen(params)
-	assert(not LOGIC_SOCKET.reserve_id)
-	local host = params.host
-	local port = params.port
-	local backlog = params.backlog
-
-	local id = socket.listen(host, port, backlog)
-	assert(id ~= nil)
-
-	LOGIC_SOCKET.reserve_id = id
-	LOGIC_SOCKET.host = host
-	LOGIC_SOCKET.port = port
-
-	socket.start(id)
-end
-
---某客户端关闭
-function LOGIC_SOCKET.cmds.clientclose(params, source)
-	local reserve_id = params.reserve_id
-	local data = LOGIC_SOCKET.agents[source]
-	data.num = data.num - 1
-	data.clients[reserve_id] = nil
-end
 
 server.start(function()
 	server.register(".logicsocket")
-	LOGIC_SOCKET.dispatch()
+	lg_socket.dispatch()
 
-	server.dispatch("lua", function(msg, sz, session, source, retfunc)
-		local params = server.unpack(msg, sz)
-		if retfunc then
-			return retfunc(params)
-		end
-		local funcname = params.funcname
-		LOGIC_SOCKET.cmds[funcname](params, source)
-	end)
+	server.dispatch("lua", function(session, source, params)
+        if (params._call) then
+        	local msg = lg_socket[params._func](params)
+        	server.ret(source, session, server.pack(msg))
+        else
+        	lg_socket[params._func](params)
+        end
+    end)
 
-	--注册代理服务
-	for i=1,OpenAgentNum do
-		local id = server.newservice("snlua logicsocket_agent")
-		LOGIC_SOCKET.agents[id] = {
-			num = 0,
-			clients = {},
-		}
-	end
-
-	--启动服务器socket
-	LOGIC_SOCKET.listen({
-		host = "0.0.0.0",
-		port = cfgData.serverport,
-		backlog = nil,
-	})
+	time_check_agent()
+	listen("0.0.0.0", cfgData.serverport, nil)
 end)

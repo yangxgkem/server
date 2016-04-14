@@ -5,7 +5,7 @@ local pairs=pairs
 _G._ImportModule = _G._ImportModule or {}
 local _ImportModule = _G._ImportModule
 
-function LoadFile(PathFile, Type)
+local function LoadFile(PathFile, Type)
 	local mod = loadfile(PathFile)()
 	if mod then
 		if Type == "import" and mod.__init__ then
