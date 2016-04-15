@@ -34,7 +34,7 @@ function clsSocket:check_agent_slot()
 
 	if new_num > 0 then
 		for i=1, new_num do
-			local id = server.newservice("snlua logic socket/socket_agent")
+			local id = server.newservice("snlua logic socket/agent")
 			table.insert(self.agents, id)
 		end
 	end

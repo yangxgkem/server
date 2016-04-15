@@ -24,6 +24,9 @@ function clsMysql:__init__()
 
 	--最近一次查询结果 result 对象
 	self.result = nil
+
+	--缓存指令,定时执行
+	self.cache_query = {}
 end
 
 --链接数据库
@@ -80,4 +83,25 @@ end
 --转义字符
 function clsMysql:escape(query)
 	return mysql.escape(self.client, query)
+end
+
+--缓存指令
+function clsMysql:save_cache(query, escape)
+	if escape then
+		query = self:escape(query)
+	end
+	table.insert(self.cache_query, query)
+end
+
+--执行多少条缓存指令
+function clsMysql:run_cache(num)
+	if num < 1 or #self.cache_query <= 0 then return end
+	if num > #self.cache_query then
+		num = #self.cache_query
+	end
+	local query
+	for i=1,num do
+		query = table.remove(self.cache_query, 1)
+		self:query(query)
+	end
 end
