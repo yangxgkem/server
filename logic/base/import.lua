@@ -6,7 +6,11 @@ _G._ImportModule = _G._ImportModule or {}
 local _ImportModule = _G._ImportModule
 
 local function LoadFile(PathFile, Type)
-	local mod = loadfile(PathFile)()
+	local mod, msg = loadfile(PathFile)
+	if not mod then
+		error(msg)
+	end
+	mod = mod()
 	if mod then
 		if Type == "import" and mod.__init__ then
 			mod.__init__()

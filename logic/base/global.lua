@@ -1,6 +1,10 @@
+--socket
+Import("./logic/module/socket/clssocket.lua")
+Import("./logic/module/socket/clssocket_agent.lua")
 
+--db
+Import("./logic/module/mysql/clsmysql.lua")
 
-
---关闭引擎存盘
-function BeforeShutDown()
-end
+--login
+Import("./logic/module/login/clslogin.lua")
+Import("./logic/module/login/clslogin_client.lua")

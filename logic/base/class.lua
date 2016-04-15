@@ -24,28 +24,25 @@ function clsObject:Inherit(o)
 	end
 	table.insert(self.__SubClass, o)
 	
-	--把父类clsObject各个属性接口继承给子类
-	
-	--没有对clsObject属性做深拷贝,如果这个类有table属性应该在init函数中初始化
-	--不应该把一个table属性放到class的定义中
-	
-	--此处不能使用setmetatable(o, {__index = self}),要设置metatable必须放到子类里去弄,原因是当
+	--把父类 clsObject 各个属性接口继承给子类
+	--没有对 clsObject 属性做深拷贝,只有对类的一级属性做拷贝
+	--此处不能使用 setmetatable(o, {__index = self}),要设置 metatable 必须放到子类里去弄,原因是当
 	--父类某属性更新后,它会去不断寻找它的子类更新此属性,子类又会去找属于它自己的子类,如果子类
-	--的__SubClass为nil,那么根据元表__index定义,它就会去取父类的__SubClass,最后就会出现死循环
+	--的 __SubClass 为nil,那么根据元表 __index 定义,它就会去取父类的 __SubClass ,最后就会出现死循环
 	for k, v in pairs(self) do
 		if not o[k] then
 			o[k]=v
 		end
 	end
 	o.__SubClass = nil
-	--设置子类的父类为clsObject
+	--设置子类的父类为 clsObject
 	o.__SuperClass = self
 
 	return o
 end
 
 function clsObject:AttachToClass(Obj)
-	setmetatable(Obj, {__ObjectType="<base object", __index = self})
+	setmetatable(Obj, {__ObjectType="<base object>", __index = self})
 	return Obj
 end
 
@@ -82,7 +79,7 @@ function clsObject:Update(OldSelf)
 		return
 	end
 	for _, Sub in pairs(self.__SubClass) do
-		local OldSub = UTIL.Copy(Sub)
+		local OldSub = UTIL.Copy(Sub) --获取一级属性
 		for k, v in pairs(self) do
 			if Sub[k] == OldSelf[k] then
 				Sub[k] = self[k]

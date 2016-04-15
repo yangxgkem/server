@@ -9,6 +9,8 @@ cmemory = require "cmemory"
 lfs = require "lfs"
 pbc = dofile("./3rd/pbc/protobuf.lua")
 bson = require "bson"
+aoi = require "aoi"
+mysql = require "luamysql"
 
 cfgData = dofile("./config.lua")
 
@@ -21,6 +23,7 @@ func_call = {} --协议处理
 DOFILELIST =
 {
 	"./logic/base/macros.lua",
+	"./logic/common/common_const.lua",
 	"./logic/base/class.lua",
 	"./logic/base/import.lua",
 	"./logic/base/extend.lua",
