@@ -1,6 +1,8 @@
-clsSocket = clsObject:Inherit()
+clsSocket = clsModuleBase:Inherit{__ClassType = "socket"}
 
 function clsSocket:__init__()
+	Super(clsSocket).__init__(self)
+	
 	--服务器IP
 	self.host = nil
 
@@ -63,38 +65,35 @@ function clsSocket:listen(host, port, backlog)
 	self.host = host
 	self.port = port
 
+	SOCKET_MGR.AddSocketId(id, self)
+
 	socket.start(id)
 end
 
---注册socket消息处理函数
-function clsSocket:dispatch()
-	--服务器socket启动成功
-	local function connectf(id, _, addr)
-		assert(self.reserve_id==id)
-		self.connect = true
-		server.error("LogicServer running............"..self.port)
-	end
+--服务器socket启动成功
+function clsSocket:connectf(id, _, addr)
+	assert(self.reserve_id==id)
+	self.connect = true
+	server.error("LogicServer running............"..self.port)
+end
 
-	--socket关闭
-	local function closef(id)
-		if self.reserve_id ~= id then return end
-		server.error("LogicServer close............"..self.port)
-	end
+--socket关闭
+function clsSocket:closef(id)
+	if self.reserve_id ~= id then return end
+	server.error("LogicServer close............"..self.port)
+end
 
-	--有客户端socket连入, 转给 login 服务
-	local function acceptf(serverid, clientid, clientaddr)
-		server.send(".login", "lua", {
-			["_func"] = "s2s_login_begin",
-			["reserve_id"] = clientid,
-			["addr"] = clientaddr,
-		})
-	end
+--有客户端socket连入, 转给 login 服务
+function clsSocket:acceptf(serverid, clientid, clientaddr)
+	server.send(".login", "lua", {
+		["_func"] = "s2s_login_begin",
+		["reserve_id"] = clientid,
+		["addr"] = clientaddr,
+	})
+end
 
-	--启动服务器socket失败
-	local function errorf(id)
-		assert(self.reserve_id==id)
-		assert(false, "LogicServer error............")
-	end
-
-	socket.dispatch(nil, connectf, closef, acceptf, errorf)
+--启动服务器socket失败
+function clsSocket:errorf(id)
+	assert(self.reserve_id==id)
+	assert(false, "LogicServer error............")
 end

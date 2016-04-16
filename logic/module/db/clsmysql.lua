@@ -1,6 +1,8 @@
-clsMysql = clsObject:Inherit()
+clsMysql = clsModuleBase:Inherit{__ClassType = "mysql"}
 
 function clsMysql:__init__()
+	Super(clsMysql).__init__(self)
+	
 	--服务器IP
 	self.host = "127.0.0.1"
 

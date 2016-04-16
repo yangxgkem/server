@@ -1,6 +1,8 @@
-clsDb = clsObject:Inherit()
+clsDb = clsModuleBase:Inherit{__ClassType = "db"}
 
 function clsDb:__init__()
+	Super(clsDb).__init__(self)
+	
 	--数据库对象
 	self.mysqlObj = clsMysql:New()
 end
@@ -32,4 +34,10 @@ function clsDb:save(query, escape, now)
 	else
 		return self.mysqlObj:save_cache(query, escape)
 	end
+end
+
+function clsDb:s2s_db_query(protomsg)
+	local query = protomsg.query
+	local escape = protomsg.escape
+	return self:query(query, escape)
 end

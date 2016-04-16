@@ -8,7 +8,6 @@ end
 
 server.start(function()
 	server.register(".socket")
-	SocketObj:dispatch()
 
 	server.dispatch("lua", function(session, source, params)
         if (params._call) then
@@ -20,5 +19,5 @@ server.start(function()
     end)
 
 	time_check_agent()
-	SocketObj:listen("0.0.0.0", cfgData.serverport, nil)
+	SocketObj:listen("0.0.0.0", cfgData.serverport, nil)    
 end)

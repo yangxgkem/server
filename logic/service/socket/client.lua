@@ -1,14 +1,12 @@
-LoginObj = clsLogin:New()
+SocketClientObj = clsSocketClient:New()
 
 server.start(function()
-	server.register(".login")
-
 	server.dispatch("lua", function(session, source, params)
         if (params._call) then
-        	local msg = LoginObj[params._func](LoginObj, params)
+        	local msg = SocketClientObj[params._func](SocketClientObj, params)
         	server.ret(source, session, server.pack(msg))
         else
-        	LoginObj[params._func](LoginObj, params)
+        	SocketClientObj[params._func](SocketClientObj, params)
         end
     end)
 end)

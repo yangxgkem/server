@@ -1,9 +1,9 @@
-clsSocketAgent = clsModuleBase:Inherit{__ClassType = "socket_agent"}
+clsSocketClient = clsModuleBase:Inherit{__ClassType = "socket_client"}
 
-function clsSocketAgent:__init__()
-	Super(clsSocketAgent).__init__(self)
+function clsSocketClient:__init__()
+	Super(clsSocketClient).__init__(self)
 	
-	--客户端 reserve_id
+	--客户端reserve_id
 	self.reserve_id = nil
 
 	--读取到的数据
@@ -24,21 +24,18 @@ function clsSocketAgent:__init__()
 	--客户端地址
 	self.addr = ""
 
+	--端口
+	self.port = nil
+
 	--最大读取数据大小
 	self.max_read = 65535
 
 	--启动时间
 	self.begintime = os.time()
-
-	--完成验证时间
-	self.succtime = nil
-
-	--是否已登录
-	self.islogin = false
 end
 
 --解析处理pbc数据
-function clsSocketAgent:checkpbc(reserve_id, proto_id, proto_data)
+function clsSocketClient:checkpbc(reserve_id, proto_id, proto_data)
 	assert(self.reserve_id == reserve_id)
 	local proto_name = GET_PROTO_NAME(proto_id)
 	if not proto_name then return end
@@ -53,7 +50,7 @@ function clsSocketAgent:checkpbc(reserve_id, proto_id, proto_data)
 end
 
 --给业务服务发送处理数据
-function clsSocketAgent:sendprotobuf(id)
+function clsSocketClient:sendprotobuf(id)
 	local msg = string.sub(self.readdata, 1, self.current_size)
 	self.readdata = string.sub(self.readdata, self.current_size+1)
 	self.readsize = self.readsize - self.current_size
@@ -77,7 +74,7 @@ function clsSocketAgent:sendprotobuf(id)
 end
 
 --socket数据 4+2+data
-function clsSocketAgent:dataf(id, size, data)
+function clsSocketClient:dataf(id, size, data)
 	self.readdata = self.readdata .. data
 	self.readsize = self.readsize + size
 	assert(#self.readdata == self.readsize)
@@ -105,34 +102,29 @@ function clsSocketAgent:dataf(id, size, data)
 end
 
 --socket连接成功
-function clsSocketAgent:connectf(id, _, addr)
+function clsSocketClient:connectf(id, _, addr)
+	print("connectf=================", id,_,addr)
 	self.connect = true
 end
 
 --socket关闭
-function clsSocketAgent:closef(id)
+function clsSocketClient:closef(id)
 	self.connect = false
-	self:close_self(id)
 end
 
 --socket出现错误,此时socket已经被底层关闭
-function clsSocketAgent:errorf(id)
+function clsSocketClient:errorf(id)
 	self.connect = false
-	self:close_self(id)
 end
 
---通知其他业务服务删除了客户端
-function clsSocketAgent:close_self(reserve_id)
-
-end
 
 --客户端连入服务器
-function clsSocketAgent:s2s_login_ok(params)
-	assert(self.connect==false)
-	self.reserve_id = params.reserve_id
-	self.addr = params.addr
+function clsSocketClient:on_connect(addr, port)
+	local id = socket.open(addr, port)
+	assert(id ~= nil)
+	self.reserve_id = id
 
-	SOCKET_MGR.AddSocketId(params.reserve_id, self)
+	SOCKET_MGR.AddSocketId(id, self)
 
-	socket.start(params.reserve_id)
+	socket.start(id)
 end
