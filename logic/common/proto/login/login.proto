@@ -1,15 +1,11 @@
 
 //联运平台账号登录
-message C2s_login_corp_account {				
-	required int32 corp_id =1;//联运商编号
-	required string acct = 2;//联运商玩家账号
-	required int32 adult =3;//账号防沉迷信息,0,1,2
-	required int32 login_time  = 4;//账号在平台的登录时间
-	required string sign = 5;//验证票据信息md5({corp_id}_{acct_id}_{login_time}_{平台密匙})
-	optional string extdata = 6;//扩展信息a=xx&b=xx&k=xx的方式获取，为了日后的其他登录信息获取
+message c2s_login_corp_account {				
+	required string account = 1;//账号
+	required int32 passwd =2;//密码
 }
 
 //发送系统时间
-message S2c_login_systime {
+message s2c_login_systime {
     required int32 time = 1;
 }

@@ -9,7 +9,7 @@ function clsLogin:s2s_login_begin(protomsg)
 	local reserve_id = protomsg.reserve_id
 	local addr = protomsg.addr
 	clientObj = clsLoginClient:New()
-	clientObj:accept(reserve_id, addr)
+	clientObj:s2s_login_begin(reserve_id, addr)
 end
 
 --登录

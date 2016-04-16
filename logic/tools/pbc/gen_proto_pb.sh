@@ -1,8 +1,8 @@
 #!/bin/sh
 
 ################################
-#½«protoĞ­ÒéÎÄ¼ş£¬±àÒë³ÉpbÎÄ¼ş
-#»·¾³ÒÀÀµ£º
+#å°†protoåè®®æ–‡ä»¶ï¼Œç¼–è¯‘æˆpbæ–‡ä»¶
+#ç¯å¢ƒä¾èµ–ï¼š
 #1)wget http://protobuf.googlecode.com/files/protobuf-2.4.1.tar.gz
 #2)tar zxf protobuf-2.4.1.tar.gz
 #3)cd protobuf-2.4.1
@@ -31,7 +31,8 @@ do
 	mkdir -p $logic_path/protocol/pbc/$out_path
 	protoc -o$logic_path/protocol/pbc/$out_path/$bname $protofile
 	if [ "$?" != "0" ];then
-		echo "±àÒëĞ­ÒéÎÄ¼ş³ö´í"
+		echo "ç¼–è¯‘åè®®æ–‡ä»¶å‡ºé”™"
 		exit 1;
 	fi
 done
+

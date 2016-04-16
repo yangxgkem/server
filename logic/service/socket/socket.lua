@@ -19,5 +19,5 @@ server.start(function()
     end)
 
 	time_check_agent()
-	SocketObj:listen("0.0.0.0", cfgData.serverport, nil)    
+	SocketObj:listen("0.0.0.0", cfgData.serverport, nil)
 end)

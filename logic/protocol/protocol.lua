@@ -54,7 +54,7 @@ function pbc_send_msg(reserve_ids, proto_name, tbldata, islsend)
 	local proto_data_length = string.len(proto_data)
 	local pack_data = string.pack("<I4I2",proto_data_length,proto_id)..proto_data
 	local send = islsend and socket.lsend or socket.send
-	if type(reserve_ids == mTABLETYPE) then
+	if type(reserve_ids) == mTABLETYPE then
 		for _,_rid in pairs(reserve_ids) do
 			send(_rid, pack_data)
 		end

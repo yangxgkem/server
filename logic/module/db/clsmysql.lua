@@ -60,13 +60,17 @@ function clsMysql:selectdb(database)
 end
 
 --查询数据
-function clsMysql:query(query, escape)
+function clsMysql:query(query, escape, cache)
+	if escape then 
+		query = mysql.escape(self.client, query)
+	end
+	if cache then
+		table.insert(self.cache_query, query)
+		return true
+	end
 	if self.result then
 		mysql.gc_result(self.client)
 		self.result = nil
-	end
-	if escape then 
-		query = mysql.escape(self.client, query)
 	end
 	local ret,errmsg = mysql.query(self.client, query)
 	if (errmsg) then
@@ -87,17 +91,10 @@ function clsMysql:escape(query)
 	return mysql.escape(self.client, query)
 end
 
---缓存指令
-function clsMysql:save_cache(query, escape)
-	if escape then
-		query = self:escape(query)
-	end
-	table.insert(self.cache_query, query)
-end
-
 --执行多少条缓存指令
 function clsMysql:run_cache(num)
-	if num < 1 or #self.cache_query <= 0 then return end
+	num = num or 1
+	if num < 1 or #self.cache_query < 0 then return end
 	if num > #self.cache_query then
 		num = #self.cache_query
 	end

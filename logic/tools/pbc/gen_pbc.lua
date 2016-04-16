@@ -155,8 +155,9 @@ function GenProtocData()
 	local fd = io.open(protocol_path, "r")
 	local fd2 = io.open(proto_conf, "r")
 	if fd and fd2 then
-		local Data = fd:read("*a")
-		loadstring(Data)()
+		-- local Data = fd:read("*a")
+		-- loadstring(Data)()
+		loadfile(protocol_path)()
 		ProtoList = PROTOCL_INFO
 		for _key,_value in pairs(ProtoList) do
 			if type(_key)==type(0) and _key>ProtoId then

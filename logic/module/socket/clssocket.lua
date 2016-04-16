@@ -1,20 +1,8 @@
-clsSocket = clsModuleBase:Inherit{__ClassType = "socket"}
+clsSocket = clsSocketBase:Inherit{__ClassType = "socket"}
 
 function clsSocket:__init__()
 	Super(clsSocket).__init__(self)
 	
-	--服务器IP
-	self.host = nil
-
-	--服务器端口
-	self.port = nil
-
-	--服务器socket reserve_id
-	self.reserve_id = nil
-
-	--是否已成功连接
-	self.connect = false
-
 	--代理服务池
 	self.agents = {}
 
@@ -42,18 +30,6 @@ function clsSocket:check_agent_slot()
 	end
 end
 
---获取一个agent
-function clsSocket:s2s_socket_agent_id()
-	if #self.agents <= 0 then return end
-	return table.remove(self.agents, 1)
-end
-
---定时检查agent池
-local function time_check_agent()
-	check_agent_slot()
-	server.timeout(100, time_check_agent)
-end
-
 --启动服务器socket
 function clsSocket:listen(host, port, backlog)
 	assert(not self.reserve_id)
@@ -73,13 +49,14 @@ end
 --服务器socket启动成功
 function clsSocket:connectf(id, _, addr)
 	assert(self.reserve_id==id)
-	self.connect = true
+	Super(clsSocket).connectf(self, id, _, addr)
 	server.error("LogicServer running............"..self.port)
 end
 
 --socket关闭
 function clsSocket:closef(id)
 	if self.reserve_id ~= id then return end
+	Super(clsSocket).closef(self, id)
 	server.error("LogicServer close............"..self.port)
 end
 
@@ -95,5 +72,12 @@ end
 --启动服务器socket失败
 function clsSocket:errorf(id)
 	assert(self.reserve_id==id)
+	Super(clsSocket).errorf(self, id)
 	assert(false, "LogicServer error............")
+end
+
+--获取一个agent
+function clsSocket:s2s_socket_agent_id()
+	if #self.agents <= 0 then return end
+	return table.remove(self.agents, 1)
 end
