@@ -28,13 +28,3 @@ end
 function clsSocketAgent:close_self(reserve_id)
 
 end
-
---登录验证成功
-function clsSocketAgent:login_ok(params)
-	assert(self.connect==false)
-	self.reserve_id = params.reserve_id
-	self.addr = params.addr
-
-	SOCKET_MGR.AddSocketId(params.reserve_id, self)
-	socket.start(params.reserve_id)
-end

@@ -4,8 +4,9 @@ local login = {}
 function login.s2s_login_begin(protomsg)
     local reserve_id = protomsg.reserve_id
     local addr = protomsg.addr
-    clientObj = clsLoginClient:New()
-    clientObj:login_begin(reserve_id, addr)
+    clientObj = clsLoginClient:New(protomsg)
+    SOCKET_MGR.AddSocketId(reserve_id, clientObj)
+    clientObj:transfer()
 end
 
 --登录
@@ -21,9 +22,6 @@ function login.c2s_login_corp_account(vfd, protomsg)
     local userdata = DB_OBJ:get_by({["account"]=account})
     if not userdata then return end
     if userdata.passwd ~= passwd then return end
-
-    clientObj.islogin = true
-    clientObj.succtime = os.time()
 
     local agent_id = service_logic_call(".socket", "s2s_socket_agent_id", {})
     if not agent_id then return end
