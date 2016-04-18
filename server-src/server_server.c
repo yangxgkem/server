@@ -403,7 +403,7 @@ server_sendname(struct server_context * context, uint32_t source, const char * a
 	if (des != 0) {
 		return server_send(context, source, des, type, session, data, sz);
 	}
-	else if (addr[0] == '#') {
+	else if (addr[0] == '.') {
 		_filter_args(context, type, &session, (void **)&data, &sz);
 		struct remote_message * rmsg = server_malloc(sizeof(*rmsg));
 		copy_name(rmsg->destination.name, addr);

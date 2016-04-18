@@ -1,12 +1,10 @@
-SocketAgentObj = clsSocketAgent:New()
-
 server.start(function()
 	server.dispatch("lua", function(session, source, params)
 		if (params._call) then
-        	local msg = SocketAgentObj[params._func](SocketAgentObj, params)
+        	local msg = func_call[params._func](params, session, source)
         	server.ret(source, session, server.pack(msg))
         else
-        	SocketAgentObj[params._func](SocketAgentObj, params)
+        	func_call[params._func](params, session, source)
         end
 	end)
 end)

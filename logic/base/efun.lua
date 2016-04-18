@@ -15,3 +15,14 @@ function TryCall(Func, ...)
 	end
 	return flag, err
 end
+
+function service_logic_send(addr, proto_name, msg)
+	msg._func = proto_name
+	server.send(addr, "lua", msg)
+end
+
+function service_logic_call(addr, proto_name, msg)
+	msg._func = proto_name
+	msg._call = true
+	return server.call(addr, "lua", msg)
+end

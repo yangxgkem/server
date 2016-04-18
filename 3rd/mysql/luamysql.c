@@ -206,8 +206,8 @@ _mysqlclient_query(lua_State* L) {
         lua_pushfstring(L, "argument #2 expects a sql string, but given a %s.", lua_typename(L, lua_type(L, 2)));
         return 2;
     }
-    sqlstr = lua_tolstring(L, 2, &sqllen);
 
+    sqlstr = lua_tolstring(L, 2, &sqllen);
     if (sqllen == 0) {
         lua_pushnil(L);
         lua_pushstring(L, "invaLid SQL statement.");
@@ -218,8 +218,24 @@ _mysqlclient_query(lua_State* L) {
     if (err) {
         lua_pushnil(L);
         lua_pushstring(L, mysql_error(obj->conn));
+        return 2;
     } else {
         obj->result = mysql_store_result(obj->conn);
+        // query does not return data. (it was not a SELECT)
+        if (obj->result == NULL) {
+            // 最近查询的列数. 该函数的正常使用是在 mysql_store_result() 返回 NULL 时
+            if (mysql_field_count(obj->conn) == 0) {
+                // 取得前一次 MySQL 操作所影响的记录行数
+                int num_rows = mysql_affected_rows(obj->conn);
+                lua_pushinteger(L, num_rows);
+                lua_pushstring(L, "query does not return data");
+                return 2;
+            } else {
+                lua_pushnil(L);
+                lua_pushstring(L, mysql_error(obj->conn));
+                return 2;
+            }
+        }
         lua_pushinteger(L, 1);
         return 1;
     }
@@ -242,6 +258,9 @@ _mysqlclient_gc(lua_State* L) {
 static int
 _mysqlclient_fieldnamelist(lua_State* L) {
     struct luamysql_obj * obj = get_mysql_obj(L, 1);
+    if (obj->result == NULL) {
+        return 0;
+    }
 
     int i;
     int nr_field = mysql_num_fields(obj->result);
@@ -259,6 +278,9 @@ _mysqlclient_fieldnamelist(lua_State* L) {
 static int
 _mysqlclient_size(lua_State* L) {
     struct luamysql_obj * obj = get_mysql_obj(L, 1);
+    if (obj->result == NULL) {
+        return 0;
+    }
     lua_pushinteger(L, mysql_num_rows(obj->result));
     return 1;
 }
@@ -267,6 +289,9 @@ _mysqlclient_size(lua_State* L) {
 static int
 _mysqlresult_record_list(lua_State* L) {
     struct luamysql_obj * obj = get_mysql_obj(L, 1);
+    if (obj->result == NULL) {
+        return 0;
+    }
     int i, num=1;
     MYSQL_ROW row;
 
@@ -293,6 +318,9 @@ _mysqlresult_record_list(lua_State* L) {
 static int
 _mysqlclient_num_fields(lua_State* L) {
     struct luamysql_obj * obj = get_mysql_obj(L, 1);
+    if (obj->result == NULL) {
+        return 0;
+    }
     lua_pushinteger(L, mysql_num_fields(obj->result));
     return 1;
 }
@@ -305,7 +333,7 @@ _mysqlresult_gc(lua_State* L) {
         mysql_free_result(obj->result);
         obj->result = NULL;
     }
-    
+
     return 0;
 }
 

@@ -1,8 +1,8 @@
 
 //联运平台账号登录
-message c2s_login_corp_account {				
+message c2s_login_corp_account {
 	required string account = 1;//账号
-	required int32 passwd =2;//密码
+	required string passwd =2;//密码
 }
 
 //发送系统时间

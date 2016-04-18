@@ -14,7 +14,7 @@ mysql = require "luamysql"
 
 cfgData = dofile("./config.lua")
 
-func_call = {} --协议处理
+func_call = {} --网络协议处理
 
 
 --模块的载入顺序是敏感的

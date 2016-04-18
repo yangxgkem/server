@@ -1,14 +1,12 @@
-LoginObj = clsLogin:New()
-
 server.start(function()
-	server.register(".login")
+    server.register(".login")
 
-	server.dispatch("lua", function(session, source, params)
+    server.dispatch("lua", function(session, source, params)
         if (params._call) then
-        	local msg = LoginObj[params._func](LoginObj, params)
-        	server.ret(source, session, server.pack(msg))
+            local msg = func_call[params._func](params, session, source)
+            server.ret(source, session, server.pack(msg))
         else
-        	LoginObj[params._func](LoginObj, params)
+            func_call[params._func](params, session, source)
         end
     end)
 end)
