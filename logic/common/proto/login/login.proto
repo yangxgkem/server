@@ -1,11 +1,25 @@
 
 //联运平台账号登录
 message c2s_login_corp_account {
-	required string account = 1;//账号
-	required string passwd =2;//密码
+    required string account = 1;//账号
+    required string passwd =2;//密码
 }
 
 //发送系统时间
-message s2c_login_systime {
-    required int32 time = 1;
+message s2c_login_error {
+    required int32 errno = 1;
+    required string errmsg = 2;
+}
+
+//登录成功发送信息
+message s2c_user_enter_info {
+    required int32 uid = 1;
+    required string name = 2;
+    required int32 sex = 3;
+    required int32 grade = 4;
+}
+
+//发送提示
+message s2c_notify_info {
+    required string msg = 1;
 }

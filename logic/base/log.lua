@@ -1,4 +1,4 @@
-local function FileInfo()
+local function fileinfo()
 	local dinfo = debug.getinfo(3, 'Sl')
 	local CallFile = dinfo.short_src
 	local CurLine = dinfo.currentline
@@ -11,7 +11,7 @@ function _RUNTIME(...)
         arg[k] = tostring(v)
     end
     local msg = table.concat(arg, "\t")
-	server.error("[RUNTIME]",FileInfo(),msg)
+	server.error("[RUNTIME]",fileinfo(),msg)
 end
 
 function _RUNTIME_ERROR(...)
@@ -20,7 +20,7 @@ function _RUNTIME_ERROR(...)
         arg[k] = tostring(v)
     end
     local msg = table.concat(arg, "\t")
-	server.error("[RUNTIME_ERROR]",FileInfo(),msg)
+	server.error("[RUNTIME_ERROR]",fileinfo(),msg)
 end
 
 function _DEBUG(...)
@@ -29,5 +29,5 @@ function _DEBUG(...)
         arg[k] = tostring(v)
     end
     local msg = table.concat(arg, "\t")
-	server.error("[_DEBUG]",FileInfo(),msg)
+	server.error("[_DEBUG]",fileinfo(),msg)
 end

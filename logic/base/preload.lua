@@ -22,34 +22,27 @@ func_call = {} --网络协议处理
 --此Table会被其他模块访问，这些模块不允许被Import
 DOFILELIST =
 {
-	"./logic/base/macros.lua",
-	"./logic/common/common_const.lua",
-	"./logic/base/class.lua",
-	"./logic/base/import.lua",
-	"./logic/base/extend.lua",
-	"./logic/base/efun.lua",
-	"./logic/base/time.lua",
-	"./logic/base/log.lua",
-	"./logic/protocol/protocol.lua",
-	"./logic/base/global.lua",
+    "./logic/base/macros.lua",
+    "./logic/common/common_const.lua",
+    "./logic/base/class.lua",
+    "./logic/base/import.lua",
+    "./logic/base/extend.lua",
+    "./logic/base/efun.lua",
+    "./logic/base/log.lua",
+    "./logic/protocol/protocol.lua",
+    "./logic/base/global.lua",
 }
 
 local function on_start()
-	--播下随机种子
-	math.randomseed(tostring(os.time()):reverse():sub(1, 6))
+    --播下随机种子
+    math.randomseed(tostring(os.time()):reverse():sub(1, 6))
 end
 
 local function do_preload()
-	for _,file in pairs(DOFILELIST) do
-		dofile(file)
-	end
-end
-
-function perform_gc()
-	collectgarbage("step", 512)
-	server.timeout(500, perform_gc)
+    for _,file in pairs(DOFILELIST) do
+        dofile(file)
+    end
 end
 
 on_start()
 do_preload()
-perform_gc()

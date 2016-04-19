@@ -12,5 +12,5 @@ function clsSocketClient:on_connect(addr, port)
 	self.addr = addr
 	self.port = port
 
-	SOCKET_MGR.AddSocketId(id, self)
+	SOCKET_MGR.add_socket_id(id, self)
 end

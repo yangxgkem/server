@@ -10,7 +10,7 @@ function clsDb:__init__()
     self._table = ""
 
     --数据库对象
-    self.mysqlObj = clsMysql:New()
+    self.mysqlObj = clsMysql:new()
 end
 
 --链接数据库

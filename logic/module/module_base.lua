@@ -10,62 +10,55 @@ end
 
 function clsModuleBase:__init__(OCI)
 	Super(clsModuleBase).__init__(self, OCI)
+
+	--核心数据
 	self.__data = {}
+
+	--临时数据
 	self.__tmp = {}
-	self.__var = {}
-	self.__init_time = os.time() --对象初始化时间
-	local Id = MODULE_MGR.NewId()
-	self.__ID = Id
-	MODULE_MGR.AddModuleId(Id, self) 
+
+	--对象初始化时间
+	self.__init_time = os.time()
+
+	--运行id分配
+	local id = MODULE_MGR.newid()
+	self.__id = id
+	MODULE_MGR.add_module_id(id, self)
 end
 
-function clsModuleBase:GetId()
-	return self.__ID
+function clsModuleBase:get_id()
+	return self.__id
 end
 
-function clsModuleBase:SetId(Id)
-	 self.__ID = Id
-	 return Id
+function clsModuleBase:set_id(id)
+	 self.__id = id
+	 return id
 end
 
-function clsModuleBase:GetName()
+function clsModuleBase:get_name()
 	assert("should add in subclass")
 end
 
 --销毁对象
-function clsModuleBase:Destroy()
-	Super(clsModuleBase).Destroy(self)
-	local Id = self:GetId()
-	MODULE_MGR.RemoveCharId(Id)
+function clsModuleBase:destroy()
+	Super(clsModuleBase).destroy(self)
+	local id = self:get_id()
+	MODULE_MGR.remove_module_id(id)
 end
 
-function clsModuleBase:SetSave(Key, Value)
-	self.__data[Key] = Value
-	return Value
+function clsModuleBase:set_save(key, value)
+	self.__data[key] = value
+	return value
 end
 
-function clsModuleBase:GetSave(Key, Default)
-	return self.__data[Key] or Default
+function clsModuleBase:get_save(key)
+	return self.__data[key]
 end
 
-function clsModuleBase:SetTmp(Key, Value)
-	self.__tmp[Key] = Value
-	return Value
+function clsModuleBase:set_tmp(key, value)
+	self.__tmp[key] = value
+	return value
 end
-function clsModuleBase:GetTmp(Key, Default)
-	return self.__tmp[Key] or Default
-end
-
-function clsModuleBase:SetPairs(VarsTable)
-	for k,v in pairs(VarsTable) do
-		self['Set'..k](self, v)
-	end
-end
-
-function clsModuleBase:GetSaveData()
-	assert("should add in subclass")
-end
-
-function clsModuleBase:Save()
-	assert("should add in subclass")
+function clsModuleBase:get_tmp(key)
+	return self.__tmp[key]
 end

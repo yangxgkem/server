@@ -18,12 +18,12 @@ local function tableprint(data, index, cv)
 	else
 		print('["table.dump"] = {')
 	end
-	if index > 20 then 
+	if index > 20 then
 		error("table data is deep")
 		return
 	end
 
-	for k, v in pairs(data) do    
+	for k, v in pairs(data) do
 		local msg = ""
 		if (type(k) == "string") then
 			msg = string.format('["%s"] = ', k);
@@ -33,7 +33,7 @@ local function tableprint(data, index, cv)
 			msg = string.format('[%s] = ', tostring(k));
 		end
 
-		if (type(v) == "table") then  
+		if (type(v) == "table") then
 			print(string.format('%s%s{', cv, msg));
 			tableprint(v, index, cv);
 		elseif (type(v)=="string") then
@@ -52,8 +52,19 @@ local function tableprint(data, index, cv)
 	end
 end
 
-table.dump = function(data)  
+table.dump = function(data)
+	local function fileinfo()
+		local dinfo = debug.getinfo(3, 'Sl')
+		local CallFile = dinfo.short_src
+		local CurLine = dinfo.currentline
+		return CallFile.." line:"..CurLine
+	end
 	print("\n############# table dump #############\n");
-    tableprint(data);
-    print("\n############# table dump #############\n");  
+	print("\n"..fileinfo().."\n")
+	if type(data) ~= type({}) then
+		print(data)
+	else
+		tableprint(data)
+	end
+    print("\n############# table dump #############\n");
 end

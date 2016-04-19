@@ -5,7 +5,7 @@ local pairs=pairs
 _G._ImportModule = _G._ImportModule or {}
 local _ImportModule = _G._ImportModule
 
-local function LoadFile(PathFile, Type)
+local function _loadfile(PathFile, Type)
 	local mod, msg = loadfile(PathFile)
 	if not mod then
 		error(msg)
@@ -26,7 +26,7 @@ function Import(PathFile)
 	if _ImportModule[PathFile] then
 		return _ImportModule[PathFile]
 	end
-	return LoadFile(PathFile, "import")
+	return _loadfile(PathFile, "import")
 end
 
 function Update(PathFile)
@@ -35,5 +35,5 @@ function Update(PathFile)
 		CALLOUT.RemoveAll(oldmod)
 		_ImportModule[PathFile] = nil
 	end
-	return LoadFile(PathFile, "update")
+	return _loadfile(PathFile, "update")
 end

@@ -11,7 +11,7 @@ function clsSocketBase:__init__()
 
 	--端口
 	self.port = nil
-	
+
 	--读取到的数据
 	self.readdata = ""
 
@@ -21,7 +21,7 @@ function clsSocketBase:__init__()
 	--当前解包数据大小
 	self.current_size = 0
 
-	--当前解包protobuf id 
+	--当前解包protobuf id
 	self.current_pid = 0
 
 	--是否已连接成功
@@ -110,6 +110,16 @@ end
 --socket出现错误,此时socket已经被底层关闭
 function clsSocketBase:errorf(id)
 	self.connect = false
+end
+
+--获取 socket reserve_id
+function clsSocketBase:get_rid()
+	return self.reserve_id
+end
+
+--获取 addr
+function clsSocketBase:get_addr()
+	return self.addr
 end
 
 --把消息转移到当前服务处理

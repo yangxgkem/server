@@ -1,4 +1,4 @@
-SocketServerObj = clsSocketServer:New()
+SocketServerObj = clsSocketServer:new()
 
 --定时检查agent池
 local function time_check_agent()

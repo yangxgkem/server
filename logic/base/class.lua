@@ -14,16 +14,16 @@ clsObject = {
 }
 
 --类继承接口
-function clsObject:Inherit(o)	
+function clsObject:Inherit(o)
 	o = o or {}
-	
+
 	--给clsObject添加一个子类
 	if not self.__SubClass then
 		self.__SubClass = {}
 		setmetatable(self.__SubClass, {__mode="v"})
 	end
 	table.insert(self.__SubClass, o)
-	
+
 	--把父类 clsObject 各个属性接口继承给子类
 	--没有对 clsObject 属性做深拷贝,只有对类的一级属性做拷贝
 	--此处不能使用 setmetatable(o, {__index = self}),要设置 metatable 必须放到子类里去弄,原因是当
@@ -41,19 +41,19 @@ function clsObject:Inherit(o)
 	return o
 end
 
-function clsObject:AttachToClass(Obj)
+function clsObject:attach_to_class(Obj)
 	setmetatable(Obj, {__ObjectType="<base object>", __index = self})
 	return Obj
 end
 
 --创建一个对象
-function clsObject:New(...)
+function clsObject:new(...)
 	local o = {}
 
 	--没有初始化对象的属性，对象属性应该在init函数中显示初始化
 	--如果是子类,应该在自己的init函数中先调用父类的init函数
 
-	self:AttachToClass(o)
+	self:attach_to_class(o)
 	if o.__init__ then
 		o:__init__(...)
 	end
@@ -63,18 +63,18 @@ end
 function clsObject:__init__()
 end
 
-function clsObject:OnCreate()
+function clsObject:on_create()
 end
 
-function clsObject:IsClass()
+function clsObject:is_class()
 	return true
 end
 
-function clsObject:Destroy()
+function clsObject:destroy()
 end
 
 --把父类属性更新到各个子类中,前提条件是:原子类的属性与父类属性一样
-function clsObject:Update(OldSelf)
+function clsObject:update(OldSelf)
 	if not self.__SubClass then
 		return
 	end

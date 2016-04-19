@@ -2,7 +2,7 @@ clsSocketServer = clsSocketBase:Inherit{__ClassType = "socket"}
 
 function clsSocketServer:__init__()
 	Super(clsSocketServer).__init__(self)
-	
+
 	--代理服务池
 	self.agents = {}
 
@@ -41,7 +41,7 @@ function clsSocketServer:listen(host, port, backlog)
 	self.host = host
 	self.port = port
 
-	SOCKET_MGR.AddSocketId(id, self)
+	SOCKET_MGR.add_socket_id(id, self)
 
 	socket.start(id)
 end
