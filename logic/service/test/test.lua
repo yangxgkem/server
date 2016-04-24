@@ -16,5 +16,5 @@ end
 
 server.start(function()
 	server.register(".test")
-    server.timeout(300, demo)
+    --server.timeout(300, demo)
 end)

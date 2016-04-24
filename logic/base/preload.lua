@@ -42,4 +42,11 @@ local function on_start()
     end
 end
 
+--心跳gc,可以有效把弱引用定时gc掉
+function perform_gc()
+    collectgarbage("step", 512)
+    server.timeout(500, perform_gc)
+end
+
 on_start()
+perform_gc()

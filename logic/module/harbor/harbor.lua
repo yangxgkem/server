@@ -1,18 +1,18 @@
 local harbor = {}
 
---client obj list
+--远方client_obj列表
 harbor.client_map = {}
 setmetatable(harbor.client_map, {__mode = "v"})
 
---client obj list
+--本地client_obj列表
 harbor.client_harbor_map = {}
 setmetatable(harbor.client_harbor_map, {__mode = "v"})
 
---handleid 指向 client_obj
+--远方 handleid/name = client_obj
 harbor.harbor_map = {}
 setmetatable(harbor.harbor_map, {__mode = "v"})
 
---缓存本地服务地址
+--本地服务地址
 harbor.handle_map = {}
 
 --港口列表
@@ -23,18 +23,12 @@ harbor.harbor_list = {
 
 --缓存服务地址
 function harbor.s2s_harbor_cache(params)
-    local handle = params.handle
-    if harbor.handle_map[handle] then
-        _RUNTIME_ERROR("handle is cache", handle)
-        return
-    end
-    harbor.handle_map[handle] = {
-        ["handle"] = handle,
-        ["name"] = params.name
+    harbor.handle_map[params.handle] = {
+        ["handle"] = params.handle,
+        ["name"] = params.name,
     }
 end
 
---根据 handleid 获取 harbor client obj
 function harbor.get_client_by_handle(handleid)
     return harbor.harbor_map[handleid]
 end
@@ -49,7 +43,7 @@ function harbor.acceptf(protomsg)
     client_obj:transfer()
 end
 
---港口客户端整理好本地服务发送给远方港口
+--将本地服务发送给远方港口
 function harbor.send_handle_list(client_obj, full_send)
     local protoinfo = {}
     protoinfo.list = {}
@@ -72,10 +66,11 @@ function harbor.h2h_harbor_handle_list(rid, protomsg)
 
     for _,info in pairs(protomsg.list) do
         local handle = info.handle
-        if harbor.harbor_map[handle] then
-            _RUNTIME_ERROR("the handle is in cache", handle)
+        harbor.harbor_map[handle] = client_obj
+        if info.name then
+            assert(not harbor.harbor_map[info.name])
+            harbor.harbor_map[info.name] = client_obj
         end
-        harbor.harbor_map[handle] = info
     end
 end
 
@@ -83,8 +78,9 @@ end
 function harbor.check_send_cache()
     for harborid,addr in pairs(harbor.harbor_list) do
         local client_obj = harbor.client_harbor_map[harborid]
-        if client_obj and not client_obj:is_connect() then
-            client_obj:close()
+        if client_obj then
+            local id = client_obj:get_id()
+            _RUNTIME(id)
         end
         if not harbor.client_harbor_map[harborid] and harborid ~= cfgData.harbor then
             local client_obj = clsSocketClient:new()
@@ -94,7 +90,9 @@ function harbor.check_send_cache()
     end
 
     for rid,client_obj in pairs(harbor.client_map) do
-        harbor.send_handle_list(client_obj)
+        if client_obj:is_connect() then
+            harbor.send_handle_list(client_obj)
+        end
     end
     server.timeout(100, harbor.check_send_cache)
 end
