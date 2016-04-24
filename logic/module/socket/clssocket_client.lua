@@ -18,13 +18,12 @@ end
 function clsSocketClient:connectf(id, _, addr)
     assert(self.reserve_id==id)
     Super(clsSocketClient).connectf(self, id, _, addr)
-    server.error("clsSocketClient running............"..self.addr)
 end
 
 function clsSocketClient:closef(id)
     if self.reserve_id ~= id then return end
     Super(clsSocketClient).closef(self, id)
-    server.error("clsSocketClient close............"..self.addr)
+    self:destroy()
 end
 
 function clsSocketClient:errorf(id)

@@ -77,11 +77,6 @@ end
 --心跳维护,把本地缓存服务发送给其他港口
 function harbor.check_send_cache()
     for harborid,addr in pairs(harbor.harbor_list) do
-        local client_obj = harbor.client_harbor_map[harborid]
-        if client_obj then
-            local id = client_obj:get_id()
-            _RUNTIME(id)
-        end
         if not harbor.client_harbor_map[harborid] and harborid ~= cfgData.harbor then
             local client_obj = clsSocketClient:new()
             client_obj:on_connect(addr)
