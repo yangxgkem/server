@@ -36,13 +36,10 @@ DOFILELIST =
 local function on_start()
     --播下随机种子
     math.randomseed(tostring(os.time()):reverse():sub(1, 6))
-end
-
-local function do_preload()
+    --加载全局模块
     for _,file in pairs(DOFILELIST) do
         dofile(file)
     end
 end
 
 on_start()
-do_preload()

@@ -9,10 +9,15 @@ CHAR_MGR = Import("./logic/char/char_mgr.lua")
 Import("./logic/module/module_base.lua")
 MODULE_MGR = Import("./logic/module/module_mgr.lua")
 
+--harbor
+HARBOR = Import("./logic/module/harbor/harbor.lua")
+
 --socket
 Import("./logic/module/socket/clssocket_base.lua")
 Import("./logic/module/socket/clssocket_server.lua")
 Import("./logic/module/socket/clssocket_agent.lua")
+Import("./logic/module/socket/clssocket_harbor.lua")
+Import("./logic/module/socket/clssocket_harbor_client.lua")
 Import("./logic/module/socket/clssocket_client.lua")
 Import("./logic/module/socket/clssocket_login.lua")
 SOCKET_MGR = Import("./logic/module/socket/socket_mgr.lua")

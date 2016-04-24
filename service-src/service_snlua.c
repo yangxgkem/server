@@ -16,7 +16,7 @@ struct snlua {
 	struct server_context * ctx;
 };
 
-static int 
+static int
 traceback(lua_State *L) {
 	const char *msg = lua_tostring(L, 1);
 	if (msg)
@@ -43,7 +43,7 @@ _init(struct snlua *l, struct server_context *ctx, const char * args, size_t sz)
 	l->ctx = ctx;
 	lua_gc(L, LUA_GCSTOP, 0);//停止gc
 	luaL_openlibs(L);//打开相关库
-	
+
 	//注册ctx到lua注册表
 	lua_pushlightuserdata(L, ctx);
 	lua_setfield(L, LUA_REGISTRYINDEX, "server_context");//lua_setfield：做一个等价于 t[k] = v 的操作, 这里 t 是给出的有效索引 index 处的值, 而 v 是栈顶的那个值
@@ -56,11 +56,11 @@ _init(struct snlua *l, struct server_context *ctx, const char * args, size_t sz)
 	const char *cpath = optstring(ctx, "lua_cpath","./luaclib/?.so");
 	lua_pushstring(L, cpath);
 	lua_setglobal(L, "LUA_CPATH");
-	
+
 	const char *service = optstring(ctx, "luaservice", "./service/?.lua");
 	lua_pushstring(L, service);
 	lua_setglobal(L, "LUA_SERVICE");
-	
+
 	const char *preload = server_cmd_command(ctx, "GETENV", "preload");
 	lua_pushstring(L, preload);
 	lua_setglobal(L, "LUA_PRELOAD");
@@ -87,7 +87,7 @@ _init(struct snlua *l, struct server_context *ctx, const char * args, size_t sz)
 				lua_errerr：运行时错误处理函数误差。
 			非0 即处理错误信息函数所在当前栈的位置，如上面执行了lua_pushcfunction(L, traceback);所以errfunc应该为1
 	*/
-	r = lua_pcall(L,1,0,1);//执行loader.lua
+	r = lua_pcall(L,1,0,1);//执行 loader.lua
 	if (r != LUA_OK) {
 		server_error(ctx, "lua loader error : %s", lua_tostring(L, -1));
 		return 1;
@@ -123,7 +123,7 @@ snlua_init(struct snlua *l, struct server_context *ctx, const char * args) {
 	server_callback(ctx, l , _launch);//设置回调函数
 	const char * self = server_cmd_command(ctx, "REG", NULL);
 	uint32_t handle_id = strtoul(self+1, NULL, 16);
-	server_send(ctx, 0, handle_id, PTYPE_TAG_DONTCOPY, 0, tmp, sz);//初始化完毕发送一条消息给自身,然后通过callback 回调到 _launch
+	server_send(ctx, 0, handle_id, PTYPE_TAG_DONTCOPY, 0, tmp, sz);//初始化完毕发送一条消息给自身,然后通过 callback 回调到 _launch
 	return 0;
 }
 

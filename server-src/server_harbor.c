@@ -11,16 +11,15 @@ static struct server_context * REMOTE = 0;
 static unsigned int HARBOR = ~0;
 
 //向远程服务发送消息
-void 
+void
 server_harbor_send(struct remote_message *rmsg, uint32_t source, int session) {
 	int type = rmsg->sz >> HANDLE_REMOTE_SHIFT;//消息类型
-	rmsg->sz &= HANDLE_MASK;//消息大小
 	assert(type != PTYPE_SYSTEM && type != PTYPE_HARBOR && REMOTE);
-	server_context_send(REMOTE, rmsg, sizeof(*rmsg) , source, type , session);
+	server_context_send(REMOTE, rmsg, sizeof(*rmsg) , source, PTYPE_HARBOR, session);
 }
 
 //是否为远程harbor
-int 
+int
 server_harbor_message_isremote(uint32_t handle) {
 	assert(HARBOR != ~0);
 	int harbor = (handle & ~HANDLE_MASK);

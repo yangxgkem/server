@@ -1,4 +1,4 @@
-clsSocketServer = clsSocketBase:Inherit{__ClassType = "socket"}
+clsSocketServer = clsSocketBase:Inherit{__ClassType = "socket_server"}
 
 function clsSocketServer:__init__()
 	Super(clsSocketServer).__init__(self)
@@ -7,19 +7,16 @@ function clsSocketServer:__init__()
 	self.agents = {}
 
 	--agent池缓存数量
-	self.agent_cache = 5
-
-	--agent池每次添加数量
-	self.agent_cache_add = 5
+	self.agent_cache = 10
 end
 
 --agent池
-function clsSocketServer:check_agent_slot()
+function clsSocketServer:create_agent_slot()
 	local num = #self.agents
 	local new_num = 0
 
 	if num < self.agent_cache then
-		new_num = (self.agent_cache-num)+self.agent_cache_add
+		new_num = self.agent_cache-num
 	end
 
 	if new_num > 0 then
@@ -75,5 +72,7 @@ end
 --获取一个agent
 function clsSocketServer:get_agent_id()
 	if #self.agents <= 0 then return end
-	return table.remove(self.agents, 1)
+	local agent_id = table.remove(self.agents, 1)
+	table.insert(self.agents, agent_id)
+	return agent_id
 end

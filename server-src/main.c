@@ -42,16 +42,16 @@ optstring(const char *key,const char * opt) {
 	return str;
 }
 
-/* 信号处理例程，其中dunno将会得到信号的值 */ 
-void 
+/* 信号处理例程，其中dunno将会得到信号的值 */
+void
 sigroutine(int dunno) {
 	switch(dunno){
 		case SIGTERM :
-			fprintf(stderr, "check a signal:SIGTERM\n");
+			fprintf(stderr, "check a signal:SIGTERM(%d)\n", SIGTERM);
 			server_signal_status = SIGTERM;
 			break;
 	}
-	return; 
+	return;
 }
 //注册信号
 int sigign() {
@@ -115,13 +115,13 @@ main(int argc, char *argv[]) {
 		fprintf(stderr,"luaL_loadfile err:%s\n",lua_tostring(L,-1));
 		lua_close(L);
 		return 1;
-	} 
+	}
 	int err = lua_pcall(L,0,1,0);
 	if (err) {
 		fprintf(stderr,"lua_pcall config file err:%s\n",lua_tostring(L,-1));
 		lua_close(L);
 		return 1;
-	} 
+	}
 	_init_env(L);
 
 	config.harbor = optint("harbor", 1);
@@ -131,9 +131,9 @@ main(int argc, char *argv[]) {
 	config.module_path = optstring("cpath","./cservice/?.so");
 
 	lua_close(L);
-	
+
 	//启动服务
 	server_start(&config);
-	
+
 	return 0;
 }

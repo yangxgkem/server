@@ -8,6 +8,7 @@ end
 
 server.start(function()
     server.register(".db")
+    harbor_cache(".db")
     assert(DB_OBJ:connect())
 
     server.dispatch("lua", function(session, source, params)

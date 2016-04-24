@@ -33,17 +33,12 @@ function regist_all_pb(proto_path)
 end
 
 Import("./logic/protocol/protocol_data.lua")
-Import("./logic/protocol/protocol_service.lua")
 function GET_PROTO_NAME(proto_id)
 	return PROTOCL_INFO[proto_id]
 end
 
 function GET_PROTOID(name)
 	return PROTOCL_INFO[name]
-end
-
-function GET_PROTOID_SERVICE(proto_id)
-	return PROTOCL_SERVICE_INFO[(PROTOCL_INFO[proto_id])]
 end
 
 function pbc_send_msg(reserve_ids, proto_name, tbldata, islsend)

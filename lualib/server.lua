@@ -269,22 +269,18 @@ end
 
 --向某服务发送数据
 function server.send(addr, typename, msg)
-	local p = server.protos[typename]
-	return servercore.send(addr, p.ptype, 0, p.pack(msg))
+	if type(addr) == type("") then
+		server.sendname(addr, typename, msg)
+	else
+		local p = server.protos[typename]
+		return servercore.send(addr, p.ptype, 0, p.pack(msg))
+	end
 end
 
 --根据服务名称发送数据
-function server.sendname(addrname, typename, msg, sz)
+function server.sendname(addrname, typename, msg)
 	local p = server.protos[typename]
-	if not server.serviceNameCache[addrname] then
-		local name = server.localname(addrname)
-		if not name then
-			server.error("has not service:", addrname)
-			return
-		end
-		server.serviceNameCache[addrname] = server.localname(addrname)
-	end
-	return servercore.send(server.serviceNameCache[addrname] or addrname, p.ptype, 0 , msg, sz)
+	return servercore.send(addrname, p.ptype, 0, p.pack(msg))
 end
 
 --向某服务发送数据,指定发送方handleid 和 接收方 handleid
@@ -393,10 +389,6 @@ server.register_protocol({
 	ptype = server.ptypes.PTYPE_ERROR,
 	unpack = function(msg, sz) return msg end,
 	dispatch = _error_dispatch,
-})
-server.register_protocol({
-	name = "harbor",
-	ptype = server.ptypes.PTYPE_HARBOR,
 })
 
 

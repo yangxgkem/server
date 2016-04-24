@@ -5,9 +5,8 @@ local pairs = pairs
 local socket_mgr = {}
 
 --[reserve_id]=socket
-socket_mgr.socket_id_map = {}
-
 --设置成弱表, 因为 module_mgr 下已经引用了 socket 对象
+socket_mgr.socket_id_map = {}
 setmetatable(socket_mgr.socket_id_map, {__mode = "v"})
 
 

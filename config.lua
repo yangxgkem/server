@@ -36,6 +36,9 @@ config["start"] = "snlua main"
 --服务器监听端口
 config["serverport"] = 6001
 
+--港口监听端口
+config["harborport"] = 6002
+
 --lua服务文件集合
 luaservice = {}
 table.insert(luaservice, config.root.."lualib/?.lua")

@@ -159,7 +159,7 @@ server_context_new(const char * name, const char *param) {
 
 	ctx->mod = mod;
 	ctx->instance = inst;
-	ctx->ref = 2;//引用数初始化为2,原因1为当前正在引用,2为server_handle_register也会引用
+	ctx->ref = 2;//引用数初始化为2,原因1为当前正在引用,2为 server_handle_register 也会引用
 	ctx->session_id = 0;
 	ctx->logfile = NULL;
 	ctx->init = false;

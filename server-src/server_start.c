@@ -195,7 +195,7 @@ _start(int thread) {
 	}
 
 	for (i=0; i<(thread+3); i++) {
-		pthread_join(pid[i], NULL); 
+		pthread_join(pid[i], NULL);
 	}
 
 	free_monitor(m);
@@ -215,7 +215,7 @@ bootstrap(const char * cmdline) {
 	}
 }
 
-void 
+void
 server_start(struct server_config * config) {
 	server_harbor_init(config->harbor);
 	server_handle_init(config->harbor);

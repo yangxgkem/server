@@ -1,5 +1,6 @@
 server.start(function()
     server.register(".login")
+    harbor_cache(".login")
 
     server.dispatch("lua", function(session, source, params)
         if (params._call) then

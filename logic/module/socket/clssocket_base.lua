@@ -126,3 +126,18 @@ end
 function clsSocketBase:transfer()
 	socket.start(self.reserve_id)
 end
+
+--是否已经连接成功
+function clsSocketBase:is_connect()
+	return self.connect
+end
+
+--关闭连接
+function clsSocketBase:close()
+	socket.close(self.reserve_id)
+end
+
+--获得类型
+function clsSocketBase:get_type()
+	return "base"
+end

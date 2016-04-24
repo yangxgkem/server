@@ -1,4 +1,6 @@
 server.start(function()
+    harbor_cache()
+
 	server.dispatch("lua", function(session, source, params)
 		if (params._call) then
         	local msg = func_call[params._func](params, session, source)

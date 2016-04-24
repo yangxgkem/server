@@ -50,7 +50,7 @@ get_allocated_field(uint32_t handle) {
 }
 
 //获取某服务已分配多少块内存
-static ssize_t* 
+static ssize_t*
 get_blocknum(uint32_t handle) {
 	int h = (int)(handle & (SLOT_SIZE - 1));
 	mem_data *data = &mem_stats[h];
@@ -60,10 +60,10 @@ get_blocknum(uint32_t handle) {
 	return &data->blocknum;
 }
 
-inline static void 
+inline static void
 update_xmalloc_stat_alloc(uint32_t handle, size_t __n) {
 	__sync_add_and_fetch(&_used_memory, __n);
-	__sync_add_and_fetch(&_memory_block, 1); 
+	__sync_add_and_fetch(&_memory_block, 1);
 	ssize_t* allocated = get_allocated_field(handle);
 	if(allocated) {
 		__sync_add_and_fetch(allocated, __n);
@@ -92,7 +92,7 @@ inline static void*
 fill_prefix(char* ptr) {
 	uint32_t handle = server_current_handle();
 	/*
-		函数是malloc_usable_size(),它返回在一个预先分配的内存块里你实际能使用的字节数。
+		函数是 malloc_usable_size(),它返回在一个预先分配的内存块里你实际能使用的字节数。
 		这个值可能会比你最初请求的值要大，因为内存齐和最小内存分配值约束。
 		例如，如果你分配30字节，但是可使用的的大小是36，这意味着你可以向那块内存写入36个字节而
 		不会覆盖其它内存块。这是一个非常糟糕和依赖版本的编程实践，然而，请不要这要做。
@@ -186,7 +186,7 @@ server_calloc(size_t nmemb, size_t size) {
 	Lua状态机中使用的内存分配器函数
 	参考lua5.3文档 lua_Alloc ：http://cloudwu.github.io/lua53doc/manual.html
 */
-void * 
+void *
 server_lalloc(void *ud, void *ptr, size_t osize, size_t nsize) {
 	if (nsize == 0) {
 		server_free(ptr);

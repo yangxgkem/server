@@ -7,6 +7,7 @@ end
 --客户端连入服务器
 function clsSocketClient:on_connect(addr, port)
 	local id = socket.open(addr, port)
+    print(id, addr, port)
 	assert(id ~= nil)
 	self.reserve_id = id
 	self.addr = addr

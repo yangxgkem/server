@@ -26,3 +26,10 @@ function service_logic_call(addr, proto_name, msg)
 	msg._call = true
 	return server.call(addr, "lua", msg)
 end
+
+function harbor_cache(handle_name)
+	service_logic_send(".harbor", "s2s_harbor_cache", {
+		["handle"]=server.self(),
+		["name"]=handle_name
+	})
+end

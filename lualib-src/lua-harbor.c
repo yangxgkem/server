@@ -32,12 +32,15 @@ harbor_unpack(lua_State *L) {
 	else {
 		lua_pushinteger(L, rmsg->destination.handle);
 	}
+	int type = rmsg->sz >> HANDLE_REMOTE_SHIFT;//消息类型
+	rmsg->sz &= HANDLE_MASK;//消息大小
 	if (rmsg->message != NULL) {
+		lua_pushinteger(L, type);
 		lua_pushlstring(L, (char *)rmsg->message, rmsg->sz);
 		lua_pushinteger(L, rmsg->sz);
 		server_free((void *)rmsg->message);
 	}
-	return 3;//返回参数数量
+	return 4;//返回参数数量
 }
 
 //通过handleid获取其所属的harbor
