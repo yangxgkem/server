@@ -16,15 +16,10 @@ LUA_INC ?= 3rd/lua
 $(LUA_STATICLIB) :
 	cd 3rd/lua && $(MAKE) CC=$(CC) $(PLAT)
 
-#pbc
-
-PBC_SRC = alloc.c array.c bootstrap.c context.c decode.c map.c pattern.c \
-	proto.c register.c rmessage.c stringpool.c varint.c wmessage.c
-
 # server
 
 CSERVICE = snlua logger
-LUA_CLIB = protobuf_c server socketdriver harbor memory lfs bson aoi luamysql
+LUA_CLIB = protobuf_c server socketdriver harbor memory lfs bson aoi luamysql cjson
 
 SERVER_SRC = main.c malloc_hook.c server_env.c server_error.c server_handle.c \
 	server_harbor.c server_imp.c server_log.c server_module.c server_monitor.c \
@@ -52,6 +47,8 @@ endef
 
 $(foreach v, $(CSERVICE), $(eval $(call CSERVICE_TEMP,$(v))))
 
+PBC_SRC = alloc.c array.c bootstrap.c context.c decode.c map.c pattern.c \
+	proto.c register.c rmessage.c stringpool.c varint.c wmessage.c
 $(LUA_CLIB_PATH)/protobuf_c.so : $(foreach v, $(PBC_SRC), 3rd/pbc/src/$(v)) 3rd/pbc/pbc-lua53.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) $^ -o $@ -I3rd/pbc
 
@@ -78,6 +75,10 @@ $(LUA_CLIB_PATH)/aoi.so : 3rd/aoi/aoi.c 3rd/aoi/laoi.c | $(LUA_CLIB_PATH)
 
 $(LUA_CLIB_PATH)/luamysql.so : 3rd/mysql/luamysql.c | $(LUA_CLIB_PATH)
 	$(CC) $(CFLAGS) $(SHARED) -Iserver-src $^ -o $@ $(LUAMYSQL_CFLAGS)
+
+LUA_CJOSN_SRC = lua_cjson.c strbuf.c fpconv.c
+$(LUA_CLIB_PATH)/cjson.so : $(foreach v, $(LUA_CJOSN_SRC), 3rd/lua-cjson/$(v)) | $(LUA_CLIB_PATH)
+	$(CC) $(CFLAGS) $(SHARED) -Iserver-src $^ -o $@
 
 clean :
 	rm -fr $(SERVER_BUILD_PATH)/server $(CSERVICE_PATH)/*.so $(LUA_CLIB_PATH)/*.so

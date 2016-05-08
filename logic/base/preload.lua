@@ -11,6 +11,7 @@ pbc = dofile("./3rd/pbc/protobuf.lua")
 bson = require "bson"
 aoi = require "aoi"
 mysql = require "luamysql"
+cjson = require "cjson"
 
 cfgData = dofile("./config.lua")
 
